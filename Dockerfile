@@ -1,11 +1,10 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 EXPOSE 8080
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY . .
-
 
 RUN dotnet restore && dotnet build -o /app/build
 
