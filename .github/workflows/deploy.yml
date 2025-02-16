@@ -39,7 +39,7 @@ jobs:
           password: ${{ secrets.SERVER_SSH_PASSWORD }}
           port: 22
           script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
-            sudo docker stop cryptic-gateway-service || true
-            sudo docker rm cryptic-gateway-service || true
-            sudo docker run -d --name cryptic-gateway-service -p 22:8080 ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
+            docker stop cryptic-gateway-service || true
+            docker rm cryptic-gateway-service || true
+            docker run -d --name cryptic-gateway-service -p 22:8080 ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
