@@ -1,34 +1,27 @@
-using GatewayService.Repositories;
-using GatewayService.Services;
+using GatewayService.DI;
+using GatewayService.Services.Config;
 
 var builder = WebApplication.CreateBuilder(args);
+var cfg = new ConfigService();
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 
-// �������� connectionString
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("Database connection string is missing!");
-}
-
-// �������� ��������� ���� JWT
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 if (string.IsNullOrEmpty(jwtSecret))
 {
     throw new InvalidOperationException("JWT secret is missing!");
 }
 
-// �������� ���������� �� �����
-builder.Services.AddScoped<UserRepository>(provider => new UserRepository(connectionString));
-builder.Services.AddScoped<UserService>(provider =>
-    new UserService(provider.GetRequiredService<UserRepository>(), jwtSecret));
+builder.Services.InjectConfiguration(cfg);
+builder.Services.ConfigureRepositories();
+builder.Services.ConfigureServices();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 

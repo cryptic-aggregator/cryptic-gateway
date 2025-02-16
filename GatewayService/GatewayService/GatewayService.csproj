@@ -13,4 +13,12 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\Repositories\Base\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\cryptic-domain\Cryptic Domain\Cryptic Domain.csproj" />
+  </ItemGroup>
+
 </Project>

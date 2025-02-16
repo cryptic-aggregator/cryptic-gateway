@@ -16,7 +16,9 @@
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5239",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Schema": "gateway",
+        "ConnString": "Host=20.215.241.137;Port=5432;Database=gateway;Username=postgres;Password=79kRvN3S6bBiy34X;"
       }
     },
     "https": {

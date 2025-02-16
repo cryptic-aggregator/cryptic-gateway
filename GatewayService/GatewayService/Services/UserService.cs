@@ -2,18 +2,19 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using GatewayService.Database.Tables;
+using GatewayService.Interfaces.Repositories;
 using GatewayService.Models;
-using GatewayService.Repositories;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GatewayService.Services;
 
-public class UserService
+public class UserService //TODO use interface for better abstraction
 {
-    private readonly UserRepository _userRepository;
+    private readonly IUserRepository _userRepository;
     private readonly string _jwtSecret;
 
-    public UserService(UserRepository userRepository, string jwtSecret)
+    public UserService(IUserRepository userRepository, string jwtSecret)
     {
         _userRepository = userRepository;
         _jwtSecret = jwtSecret;
@@ -21,14 +22,14 @@ public class UserService
 
     public async Task<int> RegisterUserAsync(UserRegisterDto userDto)
     {
-        var user = new User
+        var user = new UserTable()
         {
             Name = userDto.Name,
             Email = userDto.Email,
             PasswordMd5 = CalculateMd5Hash(userDto.Password)
         };
 
-        return await _userRepository.AddUserAsync(user);
+        return await _userRepository.CreateAsync(user);
     }
 
     private Guid CalculateMd5Hash(string input)
@@ -42,7 +43,7 @@ public class UserService
 
     public async Task<UserDto> GetUserByIdAsync(int id)
     {
-        var user = await _userRepository.GetUserByIdAsync(id);
+        var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
             return null;
@@ -56,7 +57,7 @@ public class UserService
 
     public async Task<UserDto> GetUserByEmailAsync(string email)
     {
-        var user = await _userRepository.GetUserByEmailAsync(email);
+        var user = await _userRepository.GetByEmailAsync(email);
 
         if (user == null)
             return null;
@@ -70,7 +71,7 @@ public class UserService
 
     public async Task<string> LoginAsync(LoginDto loginDto)
     {
-        var user = await _userRepository.GetUserByEmailAsync(loginDto.Email);
+        var user = await _userRepository.GetByEmailAsync(loginDto.Email);
         if (user == null)
             return null;
 
@@ -80,7 +81,7 @@ public class UserService
         return GenerateJwtToken(user);
     }
 
-    private string GenerateJwtToken(User user)
+    private string GenerateJwtToken(UserTable user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtSecret);
