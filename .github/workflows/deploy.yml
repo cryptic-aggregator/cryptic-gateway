@@ -35,8 +35,8 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: 20.215.241.137
-          username: cryptic
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_SSH_PASSWORD }}
           port: 22
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
