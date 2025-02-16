@@ -12,7 +12,7 @@ namespace GatewayService.Services;
 public class UserService //TODO use interface for better abstraction
 {
     private readonly IUserRepository _userRepository;
-    private readonly string _jwtSecret;
+    private readonly string _jwtSecret; //TODO use ConfigService and create variable in launchSettings
 
     public UserService(IUserRepository userRepository, string jwtSecret)
     {
