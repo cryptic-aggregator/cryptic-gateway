@@ -46,7 +46,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
             docker stop cryptic-gateway-service || true
             docker rm cryptic-gateway-service || true
-            docker run -d --name cryptic-gateway-service -p 80:8080 \
-            -e "ConnString=${ConnString}" \
-            -e "Schema=${Schema}" \
+            docker run -d --name cryptic-gateway-service -p 80:8080
+            -e ConnString=${{ secrets.ConnString }}
+            -e Schema=${{ secrets.Schema }}
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
