@@ -37,7 +37,6 @@ jobs:
           host: 20.215.241.137
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
             docker stop cryptic-gateway-service || true
