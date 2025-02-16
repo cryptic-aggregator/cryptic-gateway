@@ -3,26 +3,26 @@ using GatewayService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Підключаємо appsettings.json, якщо потрібно
+// ПіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ appsettings.json, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 
-// Отримуємо connectionString
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ connectionString
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new InvalidOperationException("Database connection string is missing!");
 }
 
-// Отримуємо секретний ключ JWT
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ JWT
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 if (string.IsNullOrEmpty(jwtSecret))
 {
     throw new InvalidOperationException("JWT secret is missing!");
 }
 
-// Реєструємо репозиторій та сервіс
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 builder.Services.AddScoped<UserRepository>(provider => new UserRepository(connectionString));
 builder.Services.AddScoped<UserService>(provider =>
     new UserService(provider.GetRequiredService<UserRepository>(), jwtSecret));
@@ -37,7 +37,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
 
 app.UseHttpsRedirection();
