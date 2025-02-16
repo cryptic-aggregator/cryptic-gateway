@@ -12,12 +12,11 @@ namespace GatewayService.Services;
 public class UserService //TODO use interface for better abstraction
 {
     private readonly IUserRepository _userRepository;
-    private readonly string _jwtSecret; //TODO use ConfigService and create variable in launchSettings
+    /*private readonly string _jwtSecret;*/ //TODO use ConfigService and create variable in launchSettings
 
-    public UserService(IUserRepository userRepository, string jwtSecret)
+    public UserService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _jwtSecret = jwtSecret;
     }
 
     public async Task<int> RegisterUserAsync(UserRegisterDto userDto)
@@ -84,7 +83,7 @@ public class UserService //TODO use interface for better abstraction
     private string GenerateJwtToken(UserTable user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_jwtSecret);
+        var key = Encoding.UTF8.GetBytes("_jwtSecret");
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
