@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GatewayService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
