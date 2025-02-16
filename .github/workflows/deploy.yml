@@ -35,7 +35,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: 20.215.241.137
-          username: ${{ secrets.SERVER_USER }}
+          username: cryptic
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
