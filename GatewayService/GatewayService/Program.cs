@@ -3,7 +3,6 @@ using GatewayService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ϳ�������� appsettings.json, ���� �������
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
