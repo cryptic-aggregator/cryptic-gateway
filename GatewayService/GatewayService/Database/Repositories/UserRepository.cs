@@ -24,7 +24,7 @@ public class UserRepository : BaseDbRepo<UserTable>, IUserRepository
 
         using var cmd = new NpgsqlCommand(query, Connection);
         cmd.Parameters.AddWithValue("name", NpgsqlTypes.NpgsqlDbType.Text, user.Name);
-        cmd.Parameters.AddWithValue("password_md5", NpgsqlTypes.NpgsqlDbType.Text, user.PasswordMd5);
+        cmd.Parameters.AddWithValue("password_md5", NpgsqlTypes.NpgsqlDbType.Uuid, user.PasswordMd5);
         cmd.Parameters.AddWithValue("email", NpgsqlTypes.NpgsqlDbType.Text, user.Email);
 
         using var reader = await cmd.ExecuteReaderAsync();
