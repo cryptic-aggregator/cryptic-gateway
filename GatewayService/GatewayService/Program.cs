@@ -36,8 +36,7 @@ app.UseSwaggerUI(c =>
 app.UseCors(x => x
     .AllowAnyMethod()
     .AllowAnyHeader()
-    .AllowCredentials()
-    .SetIsOriginAllowed(origin => true));
+    .AllowAnyOrigin());
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
