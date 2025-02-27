@@ -16,6 +16,6 @@ public class UserTable : IDatabaseTable
     [Column("email", NpgsqlDbType.Varchar)]
     public string Email { get; set; }
     
-    [Column("password_md5", NpgsqlDbType.Uuid)]
-    public Guid PasswordMd5 { get; set; }
+    [Column("password_hash", NpgsqlDbType.Varchar)]
+    public string PasswordHash { get; set; }
 }

@@ -4,19 +4,25 @@ using System.Security.Cryptography;
 using System.Text;
 using GatewayService.Database.Tables;
 using GatewayService.Interfaces.Repositories;
+using GatewayService.Interfaces.Services;
 using GatewayService.Models;
+using GatewayService.Models.Dtos;
 using Microsoft.IdentityModel.Tokens;
+using GatewayService.Interfaces.Config;
 
 namespace GatewayService.Services;
 
-public class UserService //TODO use interface for better abstraction
+public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    /*private readonly string _jwtSecret;*/ //TODO use ConfigService and create variable in launchSettings
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IJwtConfiguration _jwtConfig;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IJwtConfiguration jwtConfig)
     {
         _userRepository = userRepository;
+        _refreshTokenRepository = refreshTokenRepository;
+        _jwtConfig = jwtConfig;
     }
 
     public async Task<int> RegisterUserAsync(UserRegisterDto userDto)
@@ -25,19 +31,10 @@ public class UserService //TODO use interface for better abstraction
         {
             Name = userDto.Name,
             Email = userDto.Email,
-            PasswordMd5 = CalculateMd5Hash(userDto.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password)
         };
 
         return await _userRepository.CreateAsync(user);
-    }
-
-    private Guid CalculateMd5Hash(string input)
-    {
-        using (var md5 = MD5.Create())
-        {
-            var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(hashBytes);
-        }
     }
 
     public async Task<UserDto> GetUserByIdAsync(int id)
@@ -54,6 +51,17 @@ public class UserService //TODO use interface for better abstraction
         };
     }
 
+    public async Task<bool> DeleteAccountAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return false;
+
+
+        await _userRepository.DeleteUserAsync(userId);
+        return true;
+    }
+
     public async Task<UserDto> GetUserByEmailAsync(string email)
     {
         var user = await _userRepository.GetByEmailAsync(email);
@@ -68,22 +76,53 @@ public class UserService //TODO use interface for better abstraction
         };
     }
 
-    public async Task<string> LoginAsync(LoginDto loginDto)
+    public async Task<TokenResponse> LoginAsync(UserLoginDto loginDto)
     {
         var user = await _userRepository.GetByEmailAsync(loginDto.Email);
         if (user == null)
             return null;
 
-        if (CalculateMd5Hash(loginDto.Password) != user.PasswordMd5)
+        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
             return null;
 
-        return GenerateJwtToken(user);
+        var accessToken = GenerateJwtToken(user);
+        var refreshToken = GenerateRefreshToken();
+
+        await _refreshTokenRepository.StoreRefreshTokenAsync(user.Id, refreshToken);
+
+        return new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+    }
+
+    public async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
+    {
+        var userId = await _refreshTokenRepository.GetUserIdByRefreshTokenAsync(refreshToken);
+        if (userId == null)
+            return null;
+
+        var user = await _userRepository.GetByIdAsync(userId.Value);
+        if (user == null)
+            return null;
+
+        // (Опціонально: можна реалізувати ротацію refresh token – генерувати новий замість використання того самого)
+        var newAccessToken = GenerateJwtToken(user);
+        var newRefreshToken = GenerateRefreshToken();
+        await _refreshTokenRepository.UpdateRefreshTokenAsync(user.Id, newRefreshToken);
+
+        return new TokenResponse
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken
+        };
     }
 
     private string GenerateJwtToken(UserTable user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes("_jwtSecret");
+        var key = Encoding.UTF8.GetBytes(_jwtConfig.JwtSecret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -99,5 +138,16 @@ public class UserService //TODO use interface for better abstraction
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+
+    private string GenerateRefreshToken()
+    {
+        // Генеруємо 32 байти випадкових даних, конвертуємо в Base64 рядок.
+        var randomNumber = new byte[32];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
     }
 }

@@ -9,4 +9,6 @@ public interface IUserRepository
     Task<UserTable> GetByIdAsync(int id);
 
     Task<UserTable> GetByEmailAsync(string email);
+
+    Task DeleteUserAsync(int id);
 }

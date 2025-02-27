@@ -1,6 +1,7 @@
 using Cryptic_Domain.Database.Config.Interfaces;
 using Cryptic_Domain.Database.Interfaces;
 using Cryptic_Domain.Services;
+using GatewayService.Interfaces.Config;
 using GatewayService.Services.Config;
 
 namespace GatewayService.DI;
@@ -11,5 +12,10 @@ public static class ConfigurationDIConfigure
     {
         services.AddSingleton<IDatabaseConfiguration>(config);
         services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
+    }
+
+    public static void ConfigureJwtConfiguration (this IServiceCollection services)
+    {
+        services.AddSingleton<IJwtConfiguration,  JwtConfiguration>();
     }
 }
