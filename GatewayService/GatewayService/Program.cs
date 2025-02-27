@@ -70,6 +70,7 @@ builder.Services.AddSwaggerGen(c =>
 
 
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -78,6 +79,11 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 });
+
+app.UseCors(x => x
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowAnyOrigin());
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
