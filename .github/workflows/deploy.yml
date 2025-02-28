@@ -12,7 +12,6 @@ jobs:
     env:
       ConnString: ${{ secrets.ConnString }}
       Schema: ${{ secrets.Schema }}
-      BLOCKCHAININTERACTIONCONNSTRING
 
     steps:
       - name: Checkout
