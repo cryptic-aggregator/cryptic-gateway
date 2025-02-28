@@ -12,6 +12,7 @@ jobs:
     env:
       ConnString: ${{ secrets.ConnString }}
       Schema: ${{ secrets.Schema }}
+      BLOCKCHAININTERACTIONCONNSTRING
 
     steps:
       - name: Checkout
@@ -50,5 +51,5 @@ jobs:
             -e "ConnString=${{ secrets.ConnString }}" \
             -e "Schema=${{ secrets.Schema }}" \
             -e "JwtSecret=${{ secrets.JWTSECRET }}" \
-            -e "BlockchainInteractionConnString":${{BLOCKCHAININTERACTIONCONNSTRING}}" \ 
+            -e "BlockchainInteractionConnString:${{BLOCKCHAININTERACTIONCONNSTRING}}" \ 
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
