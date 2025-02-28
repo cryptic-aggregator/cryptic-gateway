@@ -1,19 +1,26 @@
 using System.Text;
 using Cryptic_Domain.Database.Config.Interfaces;
+using GatewayService.Interfaces.Config;
 
 namespace GatewayService.Services.Config;
 
-public class ConfigService : IDatabaseConfiguration
+public class ConfigService : IDatabaseConfiguration, IMicroservicesConfig
 {
     public ConfigService() 
     {
         ConnString = Environment.GetEnvironmentVariable(nameof(this.ConnString)) ?? throw DrawAllConfigVars();
         Schema = $"\"{Environment.GetEnvironmentVariable(nameof(this.Schema))}\"" ?? throw DrawAllConfigVars();
+        BlockchainInteractionConnString = Environment.GetEnvironmentVariable(nameof(this.BlockchainInteractionConnString)) ?? throw DrawAllConfigVars();
+        JwtSecret = Environment.GetEnvironmentVariable(nameof(this.JwtSecret)) ?? throw DrawAllConfigVars();
     }
     
     public string ConnString { get; private set; }
     
     public string Schema { get; private set; }
+    
+    public string JwtSecret {get; private set;}
+    
+    public string BlockchainInteractionConnString { get; private set; }
 
     private Exception DrawAllConfigVars()
     {

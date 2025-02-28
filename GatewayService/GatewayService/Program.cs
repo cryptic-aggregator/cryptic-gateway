@@ -6,22 +6,20 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 var cfg = new ConfigService();
 
-builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.Configuration.AddEnvironmentVariables();
-
 builder.Services.InjectConfiguration(cfg);
+builder.Services.ConfigureMicroservices(cfg);
 builder.Services.ConfigureRepositories();
 builder.Services.ConfigureServices();
 
 builder.Services.AddSingleton<IJwtConfiguration, JwtConfiguration>();
+
 using (var sp = builder.Services.BuildServiceProvider())
 {
     var jwtConfig = sp.GetRequiredService<IJwtConfiguration>();
     builder.Services.AddJwtAuthentication(jwtConfig);
 }
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -34,7 +32,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // Додаємо security definition для Bearer
+    // пїЅпїЅпїЅпїЅпїЅпїЅ security definition пїЅпїЅпїЅ Bearer
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme.  
@@ -46,7 +44,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    // Додаємо security requirement - глобальне застосування для всіх ендпоінтів
+    // пїЅпїЅпїЅпїЅпїЅпїЅ security requirement - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
     {
         {

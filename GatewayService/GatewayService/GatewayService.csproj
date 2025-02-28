@@ -9,7 +9,10 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />
@@ -21,6 +24,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\cryptic-domain\Cryptic Domain\Cryptic Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/BlockchainInteraction/Models/Responses/wallet_responses.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/BlockchainInteraction/Models/Requests/wallet_requests.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/BlockchainInteraction/Rpc/BlockchainIneractionService.proto" GrpcServices="Client" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/Base/v1/Models/Responses/task_response.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/Base/v1/Models/Responses/error_model.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
   </ItemGroup>
 
 </Project>

@@ -49,4 +49,6 @@ jobs:
             docker run -d --name cryptic-gateway-service -p 80:8080 \
             -e "ConnString=${{ secrets.ConnString }}" \
             -e "Schema=${{ secrets.Schema }}" \
+            -e "JwtSecret=${{ secrets.JWTSECRET }}" \
+            -e "BlockchainInteractionConnString":${{BLOCKCHAININTERACTIONCONNSTRING}}" \ 
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
