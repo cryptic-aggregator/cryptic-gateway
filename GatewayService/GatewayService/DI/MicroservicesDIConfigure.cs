@@ -14,7 +14,7 @@ public static class MicroservicesDIConfigure
         
         services.AddGrpcClient<WalletService.WalletServiceClient>(opt =>
         {
-            opt.Address = new Uri("http://" + cfg.BlockchainInteractionConnString);
+            opt.Address = new Uri(cfg.BlockchainInteractionConnString);
         }).ConfigurePrimaryHttpMessageHandler(() => customHandler);
     }
 }
