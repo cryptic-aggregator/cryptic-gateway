@@ -50,5 +50,5 @@ jobs:
             -e "ConnString=${{ secrets.ConnString }}" \
             -e "Schema=${{ secrets.Schema }}" \
             -e "JwtSecret=${{ secrets.JWTSECRET }}" \
-            -e "BlockchainInteractionConnString:${{BLOCKCHAININTERACTIONCONNSTRING}}" \ 
+            -e "BlockchainInteractionConnString=${{ secrets.BLOCKCHAININTERACTIONCONNSTRING }}" \
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
