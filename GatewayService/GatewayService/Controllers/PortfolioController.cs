@@ -63,4 +63,11 @@ public class PortfolioController : ControllerBase
         var result = await _portfolioGrpcService.ConnectWalletsAsync(request, id, 1);
         return Ok(result);
     }
+    
+    [HttpGet("{portfolioId}/info")]
+    public async Task<IActionResult> GetPortfolioInfo(int portfolioId)
+    {
+        var result = await _portfolioGrpcService.GetPortfolioInfoAsync(portfolioId, 1);
+        return Ok(result);
+    }
 }
