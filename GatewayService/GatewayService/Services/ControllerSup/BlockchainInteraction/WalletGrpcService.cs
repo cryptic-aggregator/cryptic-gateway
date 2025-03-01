@@ -18,9 +18,9 @@ public class WalletGrpcService : IWalletGrpcService
     {
         var grpcRequest = new GetWalletCoinsRequest();
         grpcRequest.Address.Add(addresses);
-            
+                
         var grpcResponse = await _grpcClient.GetWalletCoinsAsync(grpcRequest);
-            
+                
         var coins = new List<CoinModel>();
         foreach (var coin in grpcResponse.Coins)
         {
@@ -30,10 +30,12 @@ public class WalletGrpcService : IWalletGrpcService
                 Balance = coin.Balance,
                 AvgPurchasePrice = coin.AvgPurchasePrice,
                 CurrentMarketPrice = coin.CurrentMarketPrice,
-                CurrentValue = coin.CurrentValue
+                CurrentValue = coin.CurrentValue,
+                PriceChange1hPercent = coin.PriceChange1HPercent,
+                ChangeSinceAvgPurchase = coin.ChangeSinceAvgPurchase
             });
         }
-            
+                
         return new WalletResponseModel 
         { 
             Coins = coins,

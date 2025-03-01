@@ -19,4 +19,10 @@ public class CoinModel
         
     [JsonProperty("current_value")]
     public string CurrentValue { get; set; }
+    
+    [JsonProperty("price_change_1h_percent")]
+    public string PriceChange1hPercent { get; set; }
+        
+    [JsonProperty("change_since_avg_purchase")]
+    public string ChangeSinceAvgPurchase { get; set; }
 }
