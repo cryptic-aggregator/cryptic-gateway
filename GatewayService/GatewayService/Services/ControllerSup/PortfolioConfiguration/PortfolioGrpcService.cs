@@ -2,6 +2,7 @@ using Cryptic.PortfolioConfiguration.Models.Requests;
 using Cryptic.PortfolioConfiguration.Models.Responses;
 using Cryptic.PortfolioConfiguration.Rpc;
 using GatewayService.Interfaces.Services;
+using GatewayService.Models.Dtos.BlockchainInteraction.Responses;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
 
@@ -126,5 +127,46 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         };
 
         return response;
+    }
+    
+    public async Task<PortfolioInfoResponseModel> GetPortfolioInfoAsync(int id, int ownerId)
+    {
+        var grpcRequest = new GetPortfolioInfoRequest()
+        {
+            PortfolioId =id,
+            OwnerId = ownerId
+        };
+        
+        var grpcResponse = await _grpcClient.GetPortfolioInfoAsync(grpcRequest);
+        
+        var portfolioDto = new PortfolioResponseModel
+        {
+            Id = grpcResponse.Portfolio.Id,
+            Name = grpcResponse.Portfolio.Name,
+            OwnerId = grpcResponse.Portfolio.OwnerId,
+            CreatedAt = grpcResponse.Portfolio.CreatedAt
+        };
+        
+        var walletDto = new WalletResponseModel()
+        {
+            Coins = grpcResponse.WalletInfo.Coins.Select(c => new CoinModel
+            {
+                Symbol = c.Symbol,
+                Balance = c.Balance,
+                AvgPurchasePrice = c.AvgPurchasePrice,
+                CurrentMarketPrice = c.CurrentMarketPrice,
+                CurrentValue = c.CurrentValue,
+                PriceChange1hPercent = c.PriceChange1HPercent,
+                ChangeSinceAvgPurchase = c.ChangeSinceAvgPurchase,
+                Image = c.Image,
+            }).ToList(),
+            TotalPortfolioValueUSDT = grpcResponse.WalletInfo.TotalPortfolioValueUSDT
+        };
+        
+        return new PortfolioInfoResponseModel
+        {
+            Portfolio = portfolioDto,
+            WalletInfo = walletDto
+        };
     }
 }

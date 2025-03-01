@@ -25,4 +25,7 @@ public class CoinModel
         
     [JsonProperty("change_since_avg_purchase")]
     public string ChangeSinceAvgPurchase { get; set; }
+    
+    [JsonProperty("image")]
+    public string Image { get; set; }
 }
