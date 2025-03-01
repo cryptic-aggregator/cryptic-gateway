@@ -64,10 +64,10 @@ public class PortfolioController : ControllerBase
         return Ok(result);
     }
     
-    [HttpGet("{portfolioId}/info")]
-    public async Task<IActionResult> GetPortfolioInfo(int portfolioId)
+    [HttpGet("{id}/info")]
+    public async Task<IActionResult> GetPortfolioInfo(int id)
     {
-        var result = await _portfolioGrpcService.GetPortfolioInfoAsync(portfolioId, 1);
+        var result = await _portfolioGrpcService.GetPortfolioInfoAsync(id, 1);
         return Ok(result);
     }
 }
