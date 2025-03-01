@@ -10,8 +10,10 @@ public class ConfigService : IDatabaseConfiguration, IMicroservicesConfig
     {
         ConnString = Environment.GetEnvironmentVariable(nameof(this.ConnString)) ?? throw DrawAllConfigVars();
         Schema = $"\"{Environment.GetEnvironmentVariable(nameof(this.Schema))}\"" ?? throw DrawAllConfigVars();
-        BlockchainInteractionConnString = Environment.GetEnvironmentVariable(nameof(this.BlockchainInteractionConnString)) ?? throw DrawAllConfigVars();
         JwtSecret = Environment.GetEnvironmentVariable(nameof(this.JwtSecret)) ?? throw DrawAllConfigVars();
+        
+        BlockchainInteractionConnString = Environment.GetEnvironmentVariable(nameof(this.BlockchainInteractionConnString)) ?? throw DrawAllConfigVars();
+        PortfolioConfigurationConnString = Environment.GetEnvironmentVariable(nameof(this.PortfolioConfigurationConnString)) ?? throw DrawAllConfigVars();
     }
     
     public string ConnString { get; private set; }
@@ -21,6 +23,8 @@ public class ConfigService : IDatabaseConfiguration, IMicroservicesConfig
     public string JwtSecret {get; private set;}
     
     public string BlockchainInteractionConnString { get; private set; }
+    
+    public string PortfolioConfigurationConnString { get; private set; }
 
     private Exception DrawAllConfigVars()
     {

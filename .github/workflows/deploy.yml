@@ -51,4 +51,5 @@ jobs:
             -e "Schema=${{ secrets.Schema }}" \
             -e "JwtSecret=${{ secrets.JWTSECRET }}" \
             -e "BlockchainInteractionConnString=${{ secrets.BLOCKCHAININTERACTIONCONNSTRING }}" \
+            -e "PortfolioConfigurationConnString=${{ secrets.PORTFOLIOCONFIGURATIONCONNSTRING }}" \
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest

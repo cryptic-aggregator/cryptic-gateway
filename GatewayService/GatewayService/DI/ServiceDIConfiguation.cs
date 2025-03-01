@@ -1,6 +1,7 @@
 using GatewayService.Interfaces.Services;
 using GatewayService.Services;
 using GatewayService.Services.ControllerSup.BlockchainInteraction;
+using GatewayService.Services.ControllerSup.PortfolioConfiguration;
 
 namespace GatewayService.DI;
 
@@ -10,5 +11,6 @@ public static class ServiceDIConfiguation
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IWalletGrpcService, WalletGrpcService>();
+        services.AddScoped<IPortfolioGrpcService, PortfolioGrpcService>();
     }
 }
