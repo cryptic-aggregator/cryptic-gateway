@@ -6,4 +6,7 @@ public class WalletResponseModel
 {
     [JsonProperty("coins")]
     public List<CoinModel> Coins { get; set; }
+        
+    [JsonProperty("totalPortfolioValueUSDT")]
+    public string TotalPortfolioValueUSDT { get; set; }
 }

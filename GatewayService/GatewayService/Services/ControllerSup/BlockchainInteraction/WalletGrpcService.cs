@@ -14,23 +14,30 @@ public class WalletGrpcService : IWalletGrpcService
         _grpcClient = grpcClient;
     }
 
-    public async Task<WalletResponseModel> GetWalletCoinsAsync(List<string> address)
+    public async Task<WalletResponseModel> GetWalletCoinsAsync(List<string> addresses)
     {
         var grpcRequest = new GetWalletCoinsRequest();
-        grpcRequest.Address.Add(address);
-        
+        grpcRequest.Address.Add(addresses);
+            
         var grpcResponse = await _grpcClient.GetWalletCoinsAsync(grpcRequest);
-        
+            
         var coins = new List<CoinModel>();
         foreach (var coin in grpcResponse.Coins)
         {
             coins.Add(new CoinModel
             {
                 Symbol = coin.Symbol,
-                Balance = coin.Balance
+                Balance = coin.Balance,
+                AvgPurchasePrice = coin.AvgPurchasePrice,
+                CurrentMarketPrice = coin.CurrentMarketPrice,
+                CurrentValue = coin.CurrentValue
             });
         }
-
-        return new WalletResponseModel { Coins = coins };
+            
+        return new WalletResponseModel 
+        { 
+            Coins = coins,
+            TotalPortfolioValueUSDT = grpcResponse.TotalPortfolioValueUSDT
+        };
     }
 }
