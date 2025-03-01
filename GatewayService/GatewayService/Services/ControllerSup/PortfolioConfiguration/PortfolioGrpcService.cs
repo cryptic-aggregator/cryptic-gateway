@@ -67,7 +67,8 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         }).ToList();
     }
 
-    public async Task<PortfolioResponseModel> UpdatePortfolioAsync(UpdatePortfolioRequestModel portfolio, int id, int ownerId)
+    public async Task<PortfolioResponseModel> UpdatePortfolioAsync(UpdatePortfolioRequestModel portfolio, int id,
+        int ownerId)
     {
         var grpcRequest = new UpdatePortfolioRequest
         {
@@ -100,5 +101,30 @@ public class PortfolioGrpcService : IPortfolioGrpcService
 
         var grpcResponse = await _grpcClient.DeletePortfolioAsync(grpcRequest);
         return grpcResponse.Result.Success;
+    }
+
+    public async Task<ConnectWalletsResponseModel> ConnectWalletsAsync(ConnectWalletsRequestModel request, int id,
+        int ownerId)
+    {
+        var grpcRequest = new ConnectWalletsRequest
+        {
+            PortfolioId = id,
+            OwnerId = ownerId
+        };
+        grpcRequest.WalletAddresses.AddRange(request.WalletAddresses);
+
+        var grpcResponse = await _grpcClient.ConnectWalletsAsync(grpcRequest);
+        var response = new ConnectWalletsResponseModel
+        {
+            Wallets = grpcResponse.Wallets.Select(w => new WalletModel
+            {
+                Id = w.Id,
+                PortfolioId = w.PortfolioId,
+                WalletAddress = w.WalletAddress,
+                CreatedAt = w.CreatedAt
+            }).ToList()
+        };
+
+        return response;
     }
 }

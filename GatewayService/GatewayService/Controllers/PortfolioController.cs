@@ -56,4 +56,11 @@ public class PortfolioController : ControllerBase
             return Ok();
         return BadRequest();
     }
+    
+    [HttpPost("{id}/connect-wallets")]
+    public async Task<IActionResult> ConnectWallets([FromBody] ConnectWalletsRequestModel request, int id)
+    {
+        var result = await _portfolioGrpcService.ConnectWalletsAsync(request, id, 1);
+        return Ok(result);
+    }
 }

@@ -9,5 +9,6 @@ public interface IPortfolioGrpcService
     Task<PortfolioResponseModel> GetPortfolioAsync(int id, int ownerId);
     Task<List<PortfolioResponseModel>> GetPortfoliosByOwnerAsync(int ownerId);
     Task<PortfolioResponseModel> UpdatePortfolioAsync(UpdatePortfolioRequestModel portfolio, int id, int ownerId);
+    Task<ConnectWalletsResponseModel> ConnectWalletsAsync(ConnectWalletsRequestModel request, int id, int ownerId);
     Task<bool> DeletePortfolioAsync(int id, int ownerId);
 }
