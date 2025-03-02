@@ -20,6 +20,9 @@ public class UserController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDto userDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         var userId = await _userService.RegisterUserAsync(userDto);
 
         if (userId == 0)
@@ -40,8 +43,11 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> GetUserByEmail([FromBody] UserLoginDto loginDto)
+    public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         var tokenResponse = await _userService.LoginAsync(loginDto);
         if (tokenResponse == null)
             return Unauthorized(new { message = "Invalid email or password" });
@@ -72,5 +78,22 @@ public class UserController : ControllerBase
             return Unauthorized(new { message = "Invalid refresh token" });
 
         return Ok(tokenResponse);
+    }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public IActionResult GetProfile()
+    {
+        if (HttpContext.Items["UserClaims"] is UserClaims userClaims)
+        {
+            // Використовуємо дані з userClaims
+            return Ok(new
+            {
+                UserId = userClaims.UserId,
+                Email = userClaims.Email,
+                Name = userClaims.Name
+            });
+        }
+        return Unauthorized();
     }
 }

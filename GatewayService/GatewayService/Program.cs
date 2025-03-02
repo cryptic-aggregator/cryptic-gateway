@@ -1,5 +1,6 @@
 using GatewayService.DI;
 using GatewayService.Interfaces.Config;
+using GatewayService.Interfaces.Middleware;
 using GatewayService.Services.Config;
 using Microsoft.OpenApi.Models;
 
@@ -86,5 +87,9 @@ app.UseCors(x => x
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<IUserClaimsMiddleware>();
 app.MapControllers();
 app.Run();
+
+//перенести мідлвейр в окрему папку і прописати сюди
