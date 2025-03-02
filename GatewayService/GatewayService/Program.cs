@@ -1,6 +1,6 @@
 using GatewayService.DI;
 using GatewayService.Interfaces.Config;
-using GatewayService.Interfaces.Middleware;
+using GatewayService.Middleware;
 using GatewayService.Services.Config;
 using Microsoft.OpenApi.Models;
 
@@ -88,7 +88,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<IUserClaimsMiddleware>();
+app.UseMiddleware<UserClaimsMiddleware>();
 app.MapControllers();
 app.Run();
 
