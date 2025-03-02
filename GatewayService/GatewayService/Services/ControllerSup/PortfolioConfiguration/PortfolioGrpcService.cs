@@ -17,12 +17,12 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         _grpcClient = grpcClient;
     }
 
-    public async Task<PortfolioResponseModel> CreatePortfolioAsync(CreatePortfolioRequestModel request)
+    public async Task<PortfolioResponseModel> CreatePortfolioAsync(CreatePortfolioRequestModel request, int ownerId)
     {
         var grpcRequest = new CreatePortfolioRequest
         {
             Name = request.Name,
-            OwnerId = 1,
+            OwnerId = ownerId,
         };
 
         var grpcResponse = await _grpcClient.CreatePortfolioAsync(grpcRequest);

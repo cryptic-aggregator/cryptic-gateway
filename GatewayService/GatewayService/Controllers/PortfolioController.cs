@@ -22,7 +22,7 @@ public class PortfolioController : BaseController
     [HttpPost]
     public async Task<IActionResult> CreatePortfolio([FromBody] CreatePortfolioRequestModel request)
     {
-        var result = await _portfolioGrpcService.CreatePortfolioAsync(request);
+        var result = await _portfolioGrpcService.CreatePortfolioAsync(request, UserClaims.UserId);
         return Ok(result);
     }
     

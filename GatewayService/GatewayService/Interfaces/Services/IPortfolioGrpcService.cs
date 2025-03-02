@@ -5,7 +5,7 @@ namespace GatewayService.Interfaces.Services;
 
 public interface IPortfolioGrpcService
 {
-    Task<PortfolioResponseModel> CreatePortfolioAsync(CreatePortfolioRequestModel request);
+    Task<PortfolioResponseModel> CreatePortfolioAsync(CreatePortfolioRequestModel request, int ownerId);
     Task<PortfolioResponseModel> GetPortfolioAsync(int id, int ownerId);
     Task<List<PortfolioResponseModel>> GetPortfoliosByOwnerAsync(int ownerId);
     Task<PortfolioResponseModel> UpdatePortfolioAsync(UpdatePortfolioRequestModel portfolio, int id, int ownerId);
