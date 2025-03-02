@@ -17,7 +17,8 @@ public class UserController : BaseController
     {
         _userService = userService;
     }
-
+    
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDto userDto)
     {
@@ -43,6 +44,7 @@ public class UserController : BaseController
         return Ok(user);
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
     {

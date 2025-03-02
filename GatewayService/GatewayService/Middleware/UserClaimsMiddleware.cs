@@ -1,6 +1,9 @@
-﻿using GatewayService.Interfaces.Middleware;
+﻿using System.Reflection;
+using GatewayService.Interfaces.Middleware;
 using GatewayService.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace GatewayService.Middleware;
 
@@ -15,35 +18,49 @@ public class UserClaimsMiddleware : IUserClaimsMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        var controllerActionDescriptor = context
+            .GetEndpoint()?
+            .Metadata
+            .GetMetadata<ControllerActionDescriptor>();
+
+        var methodData = controllerActionDescriptor?.MethodInfo;
+        
+        var isAnonymous = methodData?.GetCustomAttribute<AllowAnonymousAttribute>() != null;
+
+        if (!isAnonymous)
         {
-            var claimsIdentity = context.User.Identity as ClaimsIdentity;
-            if (claimsIdentity != null)
+            if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
             {
-                var userIdStr = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int userId))
+                var claimsIdentity = context.User.Identity as ClaimsIdentity;
+                if (claimsIdentity != null)
                 {
-                    var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
-                    var name = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-
-                    var userClaims = new UserClaims
+                    var userIdStr = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(userIdStr, out int userId))
                     {
-                        UserId = userId,
-                        Email = email,
-                        Name = name
-                    };
+                        var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
+                        var name = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
 
-                    context.Items["UserClaims"] = userClaims;
+                        var userClaims = new UserClaims
+                        {
+                            UserId = userId,
+                            Email = email,
+                            Name = name
+                        };
+
+                        context.Items["UserClaims"] = userClaims;
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid userId");
+                    }
                 }
-                else
-                {
-                    throw new Exception("Invalid userId");
-                }
+            
+                await _next(context);
             }
             
-            await _next(context);
+            context.Response.StatusCode = 403;
         }
         
-        context.Response.StatusCode = 403;
+        await _next(context);
     }
 }
