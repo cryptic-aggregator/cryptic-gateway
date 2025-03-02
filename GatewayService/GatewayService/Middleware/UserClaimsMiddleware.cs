@@ -18,21 +18,27 @@ public class UserClaimsMiddleware : IUserClaimsMiddleware
         if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
         {
             var claimsIdentity = context.User.Identity as ClaimsIdentity;
-
             if (claimsIdentity != null)
             {
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
-                var name = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-
-                var userClaims = new UserClaims
+                var userIdStr = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int userId))
                 {
-                    UserId = userId,
-                    Email = email,
-                    Name = name
-                };
+                    var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
+                    var name = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
 
-                context.Items["UserClaims"] = userClaims;
+                    var userClaims = new UserClaims
+                    {
+                        UserId = userId,
+                        Email = email,
+                        Name = name
+                    };
+
+                    context.Items["UserClaims"] = userClaims;
+                }
+                else
+                {
+                    throw new Exception("Invalid userId");
+                }
             }
         }
 

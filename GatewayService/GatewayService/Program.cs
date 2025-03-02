@@ -33,7 +33,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // ������ security definition ��� Bearer
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme.  
@@ -45,7 +44,6 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    // ������ security requirement - ��������� ������������ ��� ��� ��������
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
     {
         {
