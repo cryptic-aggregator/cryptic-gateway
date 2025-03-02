@@ -2,13 +2,14 @@
 using GatewayService.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using GatewayService.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
 
 namespace GatewayService.Controllers;
 
 [ApiController]
 [Route("api/users")]
-public class UserController : ControllerBase
+public class UserController : BaseController
 {
     private readonly IUserService _userService;
 

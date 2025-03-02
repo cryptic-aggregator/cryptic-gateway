@@ -1,3 +1,4 @@
+using GatewayService.Controllers.Base;
 using GatewayService.Interfaces.Services;
 using GatewayService.Models.Dtos.BlockchainInteraction.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ namespace GatewayService.Controllers;
 
 [ApiController]
 [Route("api/wallet")]
-public class WalletController : ControllerBase
+public class WalletController : BaseController
 {
     private readonly IWalletGrpcService _walletGrpcService;
 

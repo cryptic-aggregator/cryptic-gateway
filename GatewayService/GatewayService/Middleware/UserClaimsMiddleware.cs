@@ -40,8 +40,10 @@ public class UserClaimsMiddleware : IUserClaimsMiddleware
                     throw new Exception("Invalid userId");
                 }
             }
+            
+            await _next(context);
         }
-
-        await _next(context);
+        
+        context.Response.StatusCode = 403;
     }
 }

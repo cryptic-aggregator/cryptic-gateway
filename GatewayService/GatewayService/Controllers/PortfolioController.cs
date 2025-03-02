@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using GatewayService.Controllers.Base;
 using GatewayService.Interfaces.Services;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
@@ -7,7 +9,7 @@ namespace GatewayService.Controllers;
 
 [ApiController]
 [Route("api/portfolio")]
-public class PortfolioController : ControllerBase
+public class PortfolioController : BaseController
 {
     //TODO change userId = 1 to user id from UserClaims
     private readonly IPortfolioGrpcService _portfolioGrpcService;
@@ -27,7 +29,7 @@ public class PortfolioController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPortfolio(int id)
     {
-        var result = await _portfolioGrpcService.GetPortfolioAsync(id, 1);
+        var result = await _portfolioGrpcService.GetPortfolioAsync(id, UserClaims.UserId);
         if (result == null)
             return NotFound();
         return Ok(result);
@@ -36,7 +38,7 @@ public class PortfolioController : ControllerBase
     [HttpGet("list")]
     public async Task<IActionResult> GetPortfoliosByOwner()
     {
-        var result = await _portfolioGrpcService.GetPortfoliosByOwnerAsync(1);
+        var result = await _portfolioGrpcService.GetPortfoliosByOwnerAsync(UserClaims.UserId);
         return Ok(result);
     }
 
@@ -44,14 +46,14 @@ public class PortfolioController : ControllerBase
 
     public async Task<IActionResult> UpdatePortfolio([FromBody] UpdatePortfolioRequestModel portfolio, int id)
     {
-        var result = await _portfolioGrpcService.UpdatePortfolioAsync(portfolio, id, 1);
+        var result = await _portfolioGrpcService.UpdatePortfolioAsync(portfolio, id, UserClaims.UserId);
         return Ok(result);
     }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePortfolio(int id)
     {
-        var success = await _portfolioGrpcService.DeletePortfolioAsync(id, 1);
+        var success = await _portfolioGrpcService.DeletePortfolioAsync(id, UserClaims.UserId);
         if (success)
             return Ok();
         return BadRequest();
@@ -60,14 +62,14 @@ public class PortfolioController : ControllerBase
     [HttpPost("{id}/connect-wallets")]
     public async Task<IActionResult> ConnectWallets([FromBody] ConnectWalletsRequestModel request, int id)
     {
-        var result = await _portfolioGrpcService.ConnectWalletsAsync(request, id, 1);
+        var result = await _portfolioGrpcService.ConnectWalletsAsync(request, id, UserClaims.UserId);
         return Ok(result);
     }
     
     [HttpGet("{id}/info")]
     public async Task<IActionResult> GetPortfolioInfo(int id)
     {
-        var result = await _portfolioGrpcService.GetPortfolioInfoAsync(id, 1);
+        var result = await _portfolioGrpcService.GetPortfolioInfoAsync(id, UserClaims.UserId);
         return Ok(result);
     }
 }
