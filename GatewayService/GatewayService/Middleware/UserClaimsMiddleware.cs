@@ -56,9 +56,8 @@ public class UserClaimsMiddleware : IUserClaimsMiddleware
                 }
             
                 await _next(context);
+                return;
             }
-            
-            context.Response.StatusCode = 403;
         }
         
         await _next(context);
