@@ -11,4 +11,5 @@ public interface IUserService
     Task<TokenResponse> LoginAsync(UserLoginDto loginDto);
     Task<TokenResponse> RefreshTokenAsync(string refreshToken);
     Task<bool> DeleteAccountAsync(int userId);
+    Task<bool> UpdateUserProfileAsync(int id, UserUpdateDto updateDto);
 }

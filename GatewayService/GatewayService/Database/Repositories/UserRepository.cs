@@ -56,4 +56,14 @@ public class UserRepository : BaseDbRepo<UserTable>, IUserRepository
     {
         await DeleteAsync(id);
     }
+
+    public async Task UpdateUserProfileAsync(int id, string name, string email)
+    {
+        var query = $"UPDATE {FullTablePath} SET name = @name, email = @email WHERE id = @id;";
+        using var cmd = new NpgsqlCommand(query, Connection);
+        cmd.Parameters.AddWithValue("name", NpgsqlTypes.NpgsqlDbType.Varchar, name);
+        cmd.Parameters.AddWithValue("email", NpgsqlTypes.NpgsqlDbType.Varchar, email);
+        cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Integer, id);
+        await cmd.ExecuteNonQueryAsync();
+    }
 }

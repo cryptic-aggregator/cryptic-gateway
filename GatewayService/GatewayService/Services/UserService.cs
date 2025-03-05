@@ -107,7 +107,6 @@ public class UserService : IUserService
         if (user == null)
             return null;
 
-        // (Опціонально: можна реалізувати ротацію refresh token – генерувати новий замість використання того самого)
         var newAccessToken = GenerateJwtToken(user);
         var newRefreshToken = GenerateRefreshToken();
         await _refreshTokenRepository.UpdateRefreshTokenAsync(user.Id, newRefreshToken);
@@ -117,6 +116,16 @@ public class UserService : IUserService
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken
         };
+    }
+
+    public async Task<bool> UpdateUserProfileAsync(int id, UserUpdateDto updateDto)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            return false;
+
+        await _userRepository.UpdateUserProfileAsync(id, updateDto.Name, updateDto.Email);
+        return true;
     }
 
     private string GenerateJwtToken(UserTable user)

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using GatewayService.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
+using GatewayService.Models.Dtos;
 
 namespace GatewayService.Controllers;
 
@@ -87,16 +88,33 @@ public class UserController : BaseController
     [HttpGet("profile")]
     public IActionResult GetProfile()
     {
-        if (HttpContext.Items["UserClaims"] is UserClaims userClaims)
+        if (UserClaims != null)
         {
-            // Використовуємо дані з userClaims
             return Ok(new
             {
-                UserId = userClaims.UserId,
-                Email = userClaims.Email,
-                Name = userClaims.Name
+                UserId = UserClaims.UserId,
+                Email = UserClaims.Email,
+                Name = UserClaims.Name
             });
         }
         return Unauthorized();
+    }
+
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UserUpdateDto updateDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        // Отримуємо user id з даних, збережених middleware (UserClaims)
+        if (UserClaims == null)
+            return Unauthorized();
+
+        var success = await _userService.UpdateUserProfileAsync(UserClaims.UserId, updateDto);
+        if (success)
+            return Ok(new { message = "Профіль оновлено успішно" });
+        else
+            return BadRequest(new { message = "Оновлення профілю не вдалося" });
     }
 }
