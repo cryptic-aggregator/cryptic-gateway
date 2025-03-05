@@ -16,12 +16,18 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IPasswordResetCodeService _passwordResetCodeService;
     private readonly IJwtConfiguration _jwtConfig;
 
-    public UserService(IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IJwtConfiguration jwtConfig)
+    public UserService(
+            IUserRepository userRepository,
+            IRefreshTokenRepository refreshTokenRepository,
+            IPasswordResetCodeService passwordResetCodeService,
+            IJwtConfiguration jwtConfig)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _passwordResetCodeService = passwordResetCodeService;
         _jwtConfig = jwtConfig;
     }
 
@@ -158,5 +164,44 @@ public class UserService : IUserService
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+    }
+
+    public async Task<bool> RequestPasswordResetCodeAsync(ForgotPasswordRequestDto request)
+    {
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        // Для безпеки: якщо користувача немає, повертаємо успіх, не повідомляючи деталі
+        if (user == null)
+            return true;
+
+        // Генеруємо та зберігаємо 6-значний код у кеші
+        var code = await _passwordResetCodeService.GenerateAndStoreResetCodeAsync(request.Email);
+
+        // Тут має бути логіка відправлення email (або SMS) з кодом користувачу.
+        // Для тестування можна залогувати або повернути код.
+        Console.WriteLine($"Reset code for {request.Email}: {code}");
+
+        return true;
+    }
+
+    // Метод для скидання паролю через код
+    public async Task<bool> ResetPasswordWithCodeAsync(ResetPasswordCodeDto resetDto)
+    {
+        // Перевіряємо, чи код валідний для даного email
+        bool valid = await _passwordResetCodeService.ValidateResetCodeAsync(resetDto.Email, resetDto.Code);
+        if (!valid)
+            return false;
+
+        var user = await _userRepository.GetByEmailAsync(resetDto.Email);
+        if (user == null)
+            return false;
+
+        // Хешуємо новий пароль за допомогою BCrypt
+        string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(resetDto.NewPassword);
+        await _userRepository.UpdateUserPasswordAsync(user.Id, newPasswordHash);
+
+        // Видаляємо код з кешу, оскільки він використаний
+        _passwordResetCodeService.RemoveResetCode(resetDto.Email);
+
+        return true;
     }
 }

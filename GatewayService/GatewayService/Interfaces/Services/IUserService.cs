@@ -1,5 +1,4 @@
-﻿using GatewayService.Models;
-using GatewayService.Models.Dtos;
+﻿using GatewayService.Models.Dtos;
 
 namespace GatewayService.Interfaces.Services;
 
@@ -12,4 +11,6 @@ public interface IUserService
     Task<TokenResponse> RefreshTokenAsync(string refreshToken);
     Task<bool> DeleteAccountAsync(int userId);
     Task<bool> UpdateUserProfileAsync(int id, UserUpdateDto updateDto);
+    Task<bool> RequestPasswordResetCodeAsync(ForgotPasswordRequestDto request);
+    Task<bool> ResetPasswordWithCodeAsync(ResetPasswordCodeDto resetDto);
 }

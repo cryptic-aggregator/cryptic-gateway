@@ -13,4 +13,6 @@ public interface IUserRepository
     Task DeleteUserAsync(int id);
 
     Task UpdateUserProfileAsync(int id, string name, string email);
+
+    Task UpdateUserPasswordAsync(int id, string passwordHash);
 }

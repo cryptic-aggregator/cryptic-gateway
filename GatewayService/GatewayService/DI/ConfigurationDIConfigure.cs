@@ -2,6 +2,8 @@ using Cryptic_Domain.Database.Config.Interfaces;
 using Cryptic_Domain.Database.Interfaces;
 using Cryptic_Domain.Services;
 using GatewayService.Interfaces.Config;
+using GatewayService.Interfaces.Services;
+using GatewayService.Services;
 using GatewayService.Services.Config;
 
 namespace GatewayService.DI;
@@ -17,5 +19,11 @@ public static class ConfigurationDIConfigure
     public static void ConfigureJwtConfiguration (this IServiceCollection services)
     {
         services.AddSingleton<IJwtConfiguration,  JwtConfiguration>();
+    }
+
+    public static void ConfigrePasswordResetService(this IServiceCollection services)
+    {
+        services.AddMemoryCache();
+        services.AddSingleton<IPasswordResetCodeService, PasswordResetCodeService>();
     }
 }

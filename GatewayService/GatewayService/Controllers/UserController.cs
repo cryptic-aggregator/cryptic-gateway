@@ -117,4 +117,27 @@ public class UserController : BaseController
         else
             return BadRequest(new { message = "Оновлення профілю не вдалося" });
     }
+
+    [HttpPost("forgot-password-code")]
+    public async Task<IActionResult> ForgotPasswordCode([FromBody] ForgotPasswordRequestDto request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        await _userService.RequestPasswordResetCodeAsync(request);
+        return Ok(new { message = "Якщо email зареєстрований, вам надіслано код для скидання паролю." });
+    }
+
+    [HttpPost("reset-password-code")]
+    public async Task<IActionResult> ResetPasswordCode([FromBody] ResetPasswordCodeDto resetDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        bool result = await _userService.ResetPasswordWithCodeAsync(resetDto);
+        if (result)
+            return Ok(new { message = "Пароль успішно скинуто." });
+        else
+            return BadRequest(new { message = "Невірний код або email." });
+    }
 }
