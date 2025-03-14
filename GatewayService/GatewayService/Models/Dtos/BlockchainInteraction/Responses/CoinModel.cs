@@ -28,4 +28,7 @@ public class CoinModel
     
     [JsonProperty("image")]
     public string Image { get; set; }
+    
+    [JsonProperty("name")]
+    public string Name { get; set; }
 }

@@ -12,4 +12,7 @@ public interface IPortfolioGrpcService
     Task<ConnectWalletsResponseModel> ConnectWalletsAsync(ConnectWalletsRequestModel request, int id, int ownerId);
     Task<PortfolioInfoResponseModel> GetPortfolioInfoAsync(int id, int ownerId);
     Task<bool> DeletePortfolioAsync(int id, int ownerId);
+    
+    Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility);
+    Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId);
 }
