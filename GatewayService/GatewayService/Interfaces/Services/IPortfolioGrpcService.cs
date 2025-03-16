@@ -15,4 +15,6 @@ public interface IPortfolioGrpcService
     
     Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility);
     Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId);
+    
+    Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId);
 }

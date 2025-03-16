@@ -206,4 +206,36 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         var response = await _grpcClient.PatchWalletVisibilityAsync(request);
         return response.Result.Success;
     }
+    
+    public async Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId)
+    {
+        var request = new GetPortfolioCalculationRequest
+        {
+            PortfolioId = portfolioId
+        };
+        
+        var grpcResponse = await _grpcClient.GetPortfolioCalculationAsync(request);
+
+        var result = new PortfolioCalculationResponseModel
+        {
+            Portfolio = new PortfolioResponseModel
+            {
+                Id = grpcResponse.Portfolio.Id,
+                Name = grpcResponse.Portfolio.Name,
+                OwnerId = grpcResponse.Portfolio.OwnerId,
+                CreatedAt = grpcResponse.Portfolio.CreatedAt
+            },
+            CalculatedCoins = grpcResponse.CalculatedCoins
+                .Select(coin => new WalletCoinResultDto
+                {
+                    Symbol = coin.Symbol,
+                    Image = coin.Image,
+                    DollarValue = coin.DollarValue,
+                    Percentage = coin.Percentage
+                })
+                .ToList(),
+        };
+
+        return result;
+    }
 }

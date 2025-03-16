@@ -4,6 +4,7 @@ using GatewayService.Interfaces.Services;
 using GatewayService.Models.Dtos.BlockchainInteraction.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GatewayService.Controllers;
@@ -102,5 +103,14 @@ public class PortfolioController : BaseController
         var wallets = await _portfolioGrpcService.GetWalletsByPortfolioIdAsync(portfolioId);
         
         return Ok(wallets);
+    }
+    
+    [HttpGet("{id}/calculation")]
+    public async Task<IActionResult> GetPortfolioCalculation(int id)
+    {
+        var ownerId = UserClaims.UserId;  
+    
+        var result = await _portfolioGrpcService.GetPortfolioCalculationAsync(id, ownerId);
+        return Ok(result);
     }
 }
