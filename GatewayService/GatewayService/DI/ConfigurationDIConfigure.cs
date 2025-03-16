@@ -24,6 +24,8 @@ public static class ConfigurationDIConfigure
     public static void ConfigrePasswordResetService(this IServiceCollection services)
     {
         services.AddMemoryCache();
+        services.AddSingleton<IEmailConfiguration, EmailConfiguration>();
         services.AddSingleton<IPasswordResetCodeService, PasswordResetCodeService>();
+        services.AddSingleton<IEmailService, EmailService>();
     }
 }

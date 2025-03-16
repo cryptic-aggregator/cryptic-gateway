@@ -18,17 +18,20 @@ public class UserService : IUserService
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IPasswordResetCodeService _passwordResetCodeService;
     private readonly IJwtConfiguration _jwtConfig;
+    private readonly IEmailService _emailService;
 
     public UserService(
             IUserRepository userRepository,
             IRefreshTokenRepository refreshTokenRepository,
             IPasswordResetCodeService passwordResetCodeService,
-            IJwtConfiguration jwtConfig)
+            IJwtConfiguration jwtConfig,
+            IEmailService emailService)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _passwordResetCodeService = passwordResetCodeService;
         _jwtConfig = jwtConfig;
+        _emailService = emailService;
     }
 
     public async Task<int> RegisterUserAsync(UserRegisterDto userDto)
@@ -169,15 +172,18 @@ public class UserService : IUserService
     public async Task<bool> RequestPasswordResetCodeAsync(ForgotPasswordRequestDto request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        // Для безпеки: якщо користувача немає, повертаємо успіх, не повідомляючи деталі
+
         if (user == null)
             return true;
 
-        // Генеруємо та зберігаємо 6-значний код у кеші
         var code = await _passwordResetCodeService.GenerateAndStoreResetCodeAsync(request.Email);
 
-        // Тут має бути логіка відправлення email (або SMS) з кодом користувачу.
-        // Для тестування можна залогувати або повернути код.
+        string subject = "Відновлення паролю";
+        string body = $"Ваш код для відновлення паролю: {code}. Він дійсний протягом 10 хвилин.";
+
+
+        await _emailService.SendEmailAsync(request.Email, subject, body);
+        
         Console.WriteLine($"Reset code for {request.Email}: {code}");
 
         return true;
