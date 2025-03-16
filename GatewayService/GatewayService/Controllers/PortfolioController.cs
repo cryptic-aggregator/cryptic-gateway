@@ -105,7 +105,7 @@ public class PortfolioController : BaseController
         return Ok(wallets);
     }
     
-    [HttpGet("{id}/calculation")]
+    [HttpGet("{id}/analytic/allocations")]
     public async Task<IActionResult> GetPortfolioCalculation(int id)
     {
         var ownerId = UserClaims.UserId;  
