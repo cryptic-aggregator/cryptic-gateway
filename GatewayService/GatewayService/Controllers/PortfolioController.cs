@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using GatewayService.Controllers.Base;
 using GatewayService.Interfaces.Services;
+using GatewayService.Models.Dtos.BlockchainInteraction.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GatewayService.Controllers;
@@ -70,6 +72,45 @@ public class PortfolioController : BaseController
     public async Task<IActionResult> GetPortfolioInfo(int id)
     {
         var result = await _portfolioGrpcService.GetPortfolioInfoAsync(id, UserClaims.UserId);
+        return Ok(result);
+    }
+    
+    [HttpPatch("{portfolioId}/wallet/{walletId}")]
+    public async Task<IActionResult> PatchWalletVisibility(
+        int portfolioId, 
+        int walletId, 
+        [FromBody] PatchWalletVisibilityModel model)
+    {
+        if (model == null)
+            return BadRequest("No body provided");
+        
+        var success = await _portfolioGrpcService.PatchWalletVisibility(portfolioId, walletId, (int)model.Visibility);
+
+        if (!success)
+            return NotFound("Wallet not found or no rows were updated.");
+
+        return Ok();
+    }
+    
+    [HttpGet("{portfolioId}/wallets/")]
+    public async Task<IActionResult> GetAllWallets(int portfolioId)
+    {
+        if (portfolioId <= 0)
+        {
+            return BadRequest("Invalid portfolio ID");
+        }
+
+        var wallets = await _portfolioGrpcService.GetWalletsByPortfolioIdAsync(portfolioId);
+        
+        return Ok(wallets);
+    }
+    
+    [HttpGet("{id}/analytic/allocations")]
+    public async Task<IActionResult> GetPortfolioCalculation(int id)
+    {
+        var ownerId = UserClaims.UserId;  
+    
+        var result = await _portfolioGrpcService.GetPortfolioCalculationAsync(id, ownerId);
         return Ok(result);
     }
 }

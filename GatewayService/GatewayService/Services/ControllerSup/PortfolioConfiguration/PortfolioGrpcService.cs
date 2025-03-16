@@ -1,3 +1,4 @@
+using Cryptic_Domain.Enums.Portfolio;
 using Cryptic.PortfolioConfiguration.Models.Requests;
 using Cryptic.PortfolioConfiguration.Models.Responses;
 using Cryptic.PortfolioConfiguration.Rpc;
@@ -110,7 +111,9 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         var grpcRequest = new ConnectWalletsRequest
         {
             PortfolioId = id,
-            OwnerId = ownerId
+            OwnerId = ownerId,
+            ConnectionType = (int)request.ConnectionType,
+            
         };
         grpcRequest.WalletAddresses.AddRange(request.WalletAddresses);
 
@@ -122,7 +125,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 Id = w.Id,
                 PortfolioId = w.PortfolioId,
                 WalletAddress = w.WalletAddress,
-                CreatedAt = w.CreatedAt
+                CreatedAt = w.CreatedAt,
             }).ToList()
         };
 
@@ -159,6 +162,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 PriceChange1hPercent = c.PriceChange1HPercent,
                 ChangeSinceAvgPurchase = c.ChangeSinceAvgPurchase,
                 Image = c.Image,
+                Name = c.Name,
             }).ToList(),
             TotalPortfolioValueUSDT = grpcResponse.WalletInfo.TotalPortfolioValueUSDT
         };
@@ -168,5 +172,70 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             Portfolio = portfolioDto,
             WalletInfo = walletDto
         };
+    }
+    
+    public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId)
+    {
+        var request = new GetWalletsByPortfolioIdRequest
+        {
+            PortfolioId = portfolioId
+        };
+
+        var response = await _grpcClient.GetWalletsByPortfolioIdAsync(request);
+
+        return response.Wallets.Select(w => new WalletModel
+        {
+            Id = w.Id,
+            PortfolioId = w.PortfolioId,
+            WalletAddress = w.WalletAddress,
+            CreatedAt = w.CreatedAt,
+            ConnectionType = (WalletConnectionType)w.ConnectionType,
+            Visibility = (WalletVisibility)w.Visibility,
+        }).ToList();
+    }
+    
+    public async Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility)
+    {
+        var request = new PatchWalletVisibilityRequest
+        {
+            PortfolioId = portfolioId,
+            WalletId = walletId,
+            Visibility = visibility
+        };
+
+        var response = await _grpcClient.PatchWalletVisibilityAsync(request);
+        return response.Result.Success;
+    }
+    
+    public async Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId)
+    {
+        var request = new GetPortfolioCalculationRequest
+        {
+            PortfolioId = portfolioId
+        };
+        
+        var grpcResponse = await _grpcClient.GetPortfolioCalculationAsync(request);
+
+        var result = new PortfolioCalculationResponseModel
+        {
+            Portfolio = new PortfolioResponseModel
+            {
+                Id = grpcResponse.Portfolio.Id,
+                Name = grpcResponse.Portfolio.Name,
+                OwnerId = grpcResponse.Portfolio.OwnerId,
+                CreatedAt = grpcResponse.Portfolio.CreatedAt
+            },
+            CalculatedCoins = grpcResponse.CalculatedCoins
+                .Select(coin => new WalletCoinResultDto
+                {
+                    Symbol = coin.Symbol,
+                    Image = coin.Image,
+                    DollarValue = coin.DollarValue,
+                    Percentage = coin.Percentage
+                })
+                .ToList(),
+        };
+
+        return result;
     }
 }

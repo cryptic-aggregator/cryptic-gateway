@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 
 namespace GatewayService.Models.Dtos.BlockchainInteraction.Requests;
 
-public class WalletRequestModel
+public class PatchWalletVisibilityModel
 {
-    [JsonProperty("addresses")]
-    [JsonPropertyName("addresses")]
-    public List<string> Address { get; set; }
+    [JsonProperty("visibility")]
+    [JsonPropertyName("visibility")]
+    public WalletVisibility Visibility { get; set; }
 }

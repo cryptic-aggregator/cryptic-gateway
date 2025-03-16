@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Cryptic_Domain.Enums.Portfolio;
 using Newtonsoft.Json;
 
 namespace GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
@@ -20,4 +21,12 @@ public class WalletModel
     [JsonPropertyName("created_at")]
     [JsonProperty("created_at")]
     public long CreatedAt { get; set; }
+    
+    [JsonPropertyName("connection_type")]
+    [JsonProperty("connection_type")]
+    public WalletConnectionType ConnectionType { get; set; }
+    
+    [JsonPropertyName("visibility")]
+    [JsonProperty("visibility")]
+    public WalletVisibility Visibility { get; set; }
 }

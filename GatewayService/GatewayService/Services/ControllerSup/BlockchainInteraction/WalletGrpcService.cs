@@ -32,7 +32,9 @@ public class WalletGrpcService : IWalletGrpcService
                 CurrentMarketPrice = coin.CurrentMarketPrice,
                 CurrentValue = coin.CurrentValue,
                 PriceChange1hPercent = coin.PriceChange1HPercent,
-                ChangeSinceAvgPurchase = coin.ChangeSinceAvgPurchase
+                ChangeSinceAvgPurchase = coin.ChangeSinceAvgPurchase,
+                Name = coin.Name,
+                Image = coin.Image,
             });
         }
                 
