@@ -52,4 +52,9 @@ jobs:
             -e "JwtSecret=${{ secrets.JWTSECRET }}" \
             -e "BlockchainInteractionConnString=${{ secrets.BLOCKCHAININTERACTIONCONNSTRING }}" \
             -e "PortfolioConfigurationConnString=${{ secrets.PORTFOLIOCONFIGURATIONCONNSTRING }}" \
+            -e "SmtpHost=${{ secrets.SMTPHOST }}" \
+            -e "SmtpPort=${{ secrets.SMTPPORT }}" \
+            -e "SmtpUsername=${{ secrets.SMTPUSERNAME }}" \
+            -e "SmtpPassword=${{ secrets.SMTPPASSWORD }}" \
+            -e "SmtpFrom=${{ secrets.SMTPFROM }}" \
             ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
