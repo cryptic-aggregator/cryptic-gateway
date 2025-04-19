@@ -86,18 +86,22 @@ public class UserController : BaseController
 
     [Authorize]
     [HttpGet("profile")]
-    public IActionResult GetProfile()
+    public async Task<IActionResult> GetProfile()
     {
-        if (UserClaims != null)
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (idClaim == null || !int.TryParse(idClaim, out var userId))
+            return Unauthorized();
+
+        var userDto = await _userService.GetUserByIdAsync(userId);
+        if (userDto == null)
+            return NotFound();
+
+        return Ok(new
         {
-            return Ok(new
-            {
-                UserId = UserClaims.UserId,
-                Email = UserClaims.Email,
-                Name = UserClaims.Name
-            });
-        }
-        return Unauthorized();
+            userId = userId,
+            Email = userDto.Email,
+            Name = userDto.Name,
+        });
     }
 
     [Authorize]
