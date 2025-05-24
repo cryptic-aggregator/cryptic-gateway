@@ -29,4 +29,16 @@ public class WalletModel
     [JsonPropertyName("visibility")]
     [JsonProperty("visibility")]
     public WalletVisibility Visibility { get; set; }
+    
+    [JsonPropertyName("name")]
+    [JsonProperty("name")]
+    public string Name { get; set; }
+        
+    [JsonPropertyName("caip_address")]
+    [JsonProperty("caip_address")]
+    public string CaipAddress { get; set; }
+        
+    [JsonPropertyName("connector")]
+    [JsonProperty("connector")]
+    public string Connector { get; set; }
 }

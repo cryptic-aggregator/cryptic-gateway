@@ -4,13 +4,26 @@ using Newtonsoft.Json;
 
 namespace GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 
-public class ConnectWalletsRequestModel
+public class WalletConnectEntityModel
 {
-    [JsonProperty("wallet_addresses")]
-    [JsonPropertyName("wallet_addresses")]
-    public List<string> WalletAddresses { get; set; }
-    
-    [JsonProperty("connection_type")]
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+        
+    [JsonPropertyName("caip_address")]
+    public string CaipAddress { get; set; }
+        
+    [JsonPropertyName("connector")]
+    public string Connector { get; set; }
+        
     [JsonPropertyName("connection_type")]
     public WalletConnectionType ConnectionType { get; set; }
+        
+    [JsonPropertyName("wallet_address")]
+    public string WalletAddress { get; set; }
+}
+
+public class ConnectWalletsRequestModel
+{
+    [JsonPropertyName("wallets")]
+    public List<WalletConnectEntityModel> Wallets { get; set; }
 }

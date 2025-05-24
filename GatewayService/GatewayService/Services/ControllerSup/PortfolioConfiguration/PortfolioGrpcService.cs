@@ -105,43 +105,61 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         return grpcResponse.Result.Success;
     }
 
-    public async Task<ConnectWalletsResponseModel> ConnectWalletsAsync(ConnectWalletsRequestModel request, int id,
+    public async Task<ConnectWalletsResponseModel> ConnectWalletsAsync(
+        ConnectWalletsRequestModel request,
+        int portfolioId,
         int ownerId)
     {
+        // Створюємо gRPC-запит і додаємо кожен WalletConnectEntity
         var grpcRequest = new ConnectWalletsRequest
         {
-            PortfolioId = id,
-            OwnerId = ownerId,
-            ConnectionType = (int)request.ConnectionType,
-            
+            PortfolioId = portfolioId,
+            OwnerId = ownerId
         };
-        grpcRequest.WalletAddresses.AddRange(request.WalletAddresses);
 
-        var grpcResponse = await _grpcClient.ConnectWalletsAsync(grpcRequest);
-        var response = new ConnectWalletsResponseModel
+        foreach (var w in request.Wallets)
         {
-            Wallets = grpcResponse.Wallets.Select(w => new WalletModel
+            grpcRequest.Wallets.Add(new WalletConnectEntity
             {
-                Id = w.Id,
-                PortfolioId = w.PortfolioId,
-                WalletAddress = w.WalletAddress,
-                CreatedAt = w.CreatedAt,
-            }).ToList()
+                Name = w.Name,
+                CaipAddress = w.CaipAddress,
+                Connector = w.Connector,
+                ConnectionType = (int)w.ConnectionType,
+                WalletAddress = w.WalletAddress
+            });
+        }
+        
+        var grpcResponse = await _grpcClient.ConnectWalletsAsync(grpcRequest);
+        
+        return new ConnectWalletsResponseModel
+        {
+            Wallets = grpcResponse.Wallets
+                .Select(w => new WalletModel
+                {
+                    Id = w.Id,
+                    PortfolioId = w.PortfolioId,
+                    Name = w.Name,
+                    CaipAddress = w.CaipAddress,
+                    Connector = w.Connector,
+                    ConnectionType = (WalletConnectionType)w.ConnectionType,
+                    Visibility = (WalletVisibility)w.Visibility,
+                    WalletAddress = w.WalletAddress,
+                    CreatedAt = w.CreatedAt
+                })
+                .ToList()
         };
-
-        return response;
     }
-    
+
     public async Task<PortfolioInfoResponseModel> GetPortfolioInfoAsync(int id, int ownerId)
     {
         var grpcRequest = new GetPortfolioInfoRequest()
         {
-            PortfolioId =id,
+            PortfolioId = id,
             OwnerId = ownerId
         };
-        
+
         var grpcResponse = await _grpcClient.GetPortfolioInfoAsync(grpcRequest);
-        
+
         var portfolioDto = new PortfolioResponseModel
         {
             Id = grpcResponse.Portfolio.Id,
@@ -149,7 +167,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             OwnerId = grpcResponse.Portfolio.OwnerId,
             CreatedAt = grpcResponse.Portfolio.CreatedAt
         };
-        
+
         var walletDto = new WalletResponseModel()
         {
             Coins = grpcResponse.WalletInfo.Coins.Select(c => new CoinModel
@@ -166,14 +184,14 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             }).ToList(),
             TotalPortfolioValueUSDT = grpcResponse.WalletInfo.TotalPortfolioValueUSDT
         };
-        
+
         return new PortfolioInfoResponseModel
         {
             Portfolio = portfolioDto,
             WalletInfo = walletDto
         };
     }
-    
+
     public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId)
     {
         var request = new GetWalletsByPortfolioIdRequest
@@ -193,7 +211,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             Visibility = (WalletVisibility)w.Visibility,
         }).ToList();
     }
-    
+
     public async Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility)
     {
         var request = new PatchWalletVisibilityRequest
@@ -206,14 +224,14 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         var response = await _grpcClient.PatchWalletVisibilityAsync(request);
         return response.Result.Success;
     }
-    
+
     public async Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId)
     {
         var request = new GetPortfolioCalculationRequest
         {
             PortfolioId = portfolioId
         };
-        
+
         var grpcResponse = await _grpcClient.GetPortfolioCalculationAsync(request);
 
         var result = new PortfolioCalculationResponseModel
