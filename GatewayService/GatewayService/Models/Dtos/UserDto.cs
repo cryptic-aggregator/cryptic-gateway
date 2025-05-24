@@ -1,4 +1,4 @@
-﻿namespace GatewayService.Models;
+﻿namespace GatewayService.Models.Dtos;
 
 public class UserDto
 {

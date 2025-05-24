@@ -14,6 +14,7 @@ public class ConfigService : IDatabaseConfiguration, IMicroservicesConfig
         
         BlockchainInteractionConnString = Environment.GetEnvironmentVariable(nameof(this.BlockchainInteractionConnString)) ?? throw DrawAllConfigVars();
         PortfolioConfigurationConnString = Environment.GetEnvironmentVariable(nameof(this.PortfolioConfigurationConnString)) ?? throw DrawAllConfigVars();
+
     }
     
     public string ConnString { get; private set; }

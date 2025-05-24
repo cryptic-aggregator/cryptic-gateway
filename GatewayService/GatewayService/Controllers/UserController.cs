@@ -86,18 +86,22 @@ public class UserController : BaseController
 
     [Authorize]
     [HttpGet("profile")]
-    public IActionResult GetProfile()
+    public async Task<IActionResult> GetProfile()
     {
-        if (UserClaims != null)
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (idClaim == null || !int.TryParse(idClaim, out var userId))
+            return Unauthorized();
+
+        var userDto = await _userService.GetUserByIdAsync(userId);
+        if (userDto == null)
+            return NotFound();
+
+        return Ok(new
         {
-            return Ok(new
-            {
-                UserId = UserClaims.UserId,
-                Email = UserClaims.Email,
-                Name = UserClaims.Name
-            });
-        }
-        return Unauthorized();
+            userId = userId,
+            Email = userDto.Email,
+            Name = userDto.Name,
+        });
     }
 
     [Authorize]
@@ -116,5 +120,28 @@ public class UserController : BaseController
             return Ok(new { message = "Профіль оновлено успішно" });
         else
             return BadRequest(new { message = "Оновлення профілю не вдалося" });
+    }
+
+    [HttpPost("forgot-password-code")]
+    public async Task<IActionResult> ForgotPasswordCode([FromBody] ForgotPasswordRequestDto request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        await _userService.RequestPasswordResetCodeAsync(request);
+        return Ok(new { message = "Якщо email зареєстрований, вам надіслано код для скидання паролю." });
+    }
+
+    [HttpPost("reset-password-code")]
+    public async Task<IActionResult> ResetPasswordCode([FromBody] ResetPasswordCodeDto resetDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        bool result = await _userService.ResetPasswordWithCodeAsync(resetDto);
+        if (result)
+            return Ok(new { message = "Пароль успішно скинуто." });
+        else
+            return BadRequest(new { message = "Невірний код або email." });
     }
 }

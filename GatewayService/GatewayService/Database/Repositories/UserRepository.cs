@@ -66,4 +66,13 @@ public class UserRepository : BaseDbRepo<UserTable>, IUserRepository
         cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Integer, id);
         await cmd.ExecuteNonQueryAsync();
     }
+
+    public async Task UpdateUserPasswordAsync(int id, string passwordHash)
+    {
+        var query = $"UPDATE {FullTablePath} SET password_hash = @passwordHash WHERE id = @id;";
+        using var cmd = new NpgsqlCommand(query, Connection);
+        cmd.Parameters.AddWithValue("passwordHash", NpgsqlTypes.NpgsqlDbType.Text, passwordHash);
+        cmd.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Integer, id);
+        await cmd.ExecuteNonQueryAsync();
+    }
 }

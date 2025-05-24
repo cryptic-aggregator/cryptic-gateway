@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GatewayService.Models;
+namespace GatewayService.Models.Dtos;
 
 public class UserRegisterDto
 {
