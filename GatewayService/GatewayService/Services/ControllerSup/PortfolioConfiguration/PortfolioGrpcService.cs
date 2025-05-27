@@ -110,7 +110,6 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         int portfolioId,
         int ownerId)
     {
-        // Створюємо gRPC-запит і додаємо кожен WalletConnectEntity
         var grpcRequest = new ConnectWalletsRequest
         {
             PortfolioId = portfolioId,
@@ -125,7 +124,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 CaipAddress = w.CaipAddress,
                 Connector = w.Connector,
                 ConnectionType = (int)w.ConnectionType,
-                WalletAddress = w.WalletAddress
+                WalletAddress = w.WalletAddress,
             });
         }
         

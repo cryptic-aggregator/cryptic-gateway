@@ -8,15 +8,15 @@ public class WalletConnectEntityModel
 {
     [JsonPropertyName("name")]
     [JsonProperty("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
         
     [JsonPropertyName("caip_address")]
     [JsonProperty("caip_address")]
-    public string CaipAddress { get; set; }
+    public string? CaipAddress { get; set; }
         
     [JsonPropertyName("connector")]
     [JsonProperty("connector")]
-    public string Connector { get; set; }
+    public string? Connector { get; set; }
         
     [JsonPropertyName("connection_type")]
     [JsonProperty("connection_type")]
