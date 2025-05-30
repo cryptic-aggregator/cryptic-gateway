@@ -208,6 +208,9 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             CreatedAt = w.CreatedAt,
             ConnectionType = (WalletConnectionType)w.ConnectionType,
             Visibility = (WalletVisibility)w.Visibility,
+            CaipAddress = w.CaipAddress,
+            Connector = w.Connector,
+            Name = w.Name,
         }).ToList();
     }
 
