@@ -17,4 +17,9 @@ public interface IPortfolioGrpcService
     Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId);
     
     Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId);
+    
+    Task<PortfolioTransactionsResponseModel> GetPortfolioTransactionsAsync(
+        int portfolioId,
+        int ownerId,
+        GetPortfolioTransactionsRequestModel filters);
 }

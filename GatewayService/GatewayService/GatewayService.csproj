@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Database\Repositories\Base\" />
+    <Folder Include="k8s\" />
   </ItemGroup>
 
   <ItemGroup>
