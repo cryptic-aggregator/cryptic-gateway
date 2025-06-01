@@ -9,6 +9,8 @@ using GatewayService.Models;
 using GatewayService.Models.Dtos;
 using Microsoft.IdentityModel.Tokens;
 using GatewayService.Interfaces.Config;
+using OtpNet;
+using QRCoder;
 
 namespace GatewayService.Services;
 
@@ -16,6 +18,7 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly ITwoFactorRepository _twoFactorRepository;
     private readonly IPasswordResetCodeService _passwordResetCodeService;
     private readonly IJwtConfiguration _jwtConfig;
     private readonly IEmailService _emailService;
@@ -23,12 +26,14 @@ public class UserService : IUserService
     public UserService(
             IUserRepository userRepository,
             IRefreshTokenRepository refreshTokenRepository,
+            ITwoFactorRepository twoFactorRepository,
             IPasswordResetCodeService passwordResetCodeService,
             IJwtConfiguration jwtConfig,
             IEmailService emailService)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _twoFactorRepository = twoFactorRepository;
         _passwordResetCodeService = passwordResetCodeService;
         _jwtConfig = jwtConfig;
         _emailService = emailService;
@@ -209,5 +214,117 @@ public class UserService : IUserService
         _passwordResetCodeService.RemoveResetCode(resetDto.Email);
 
         return true;
+    }
+
+    public async Task<(string SecretBase32, byte[] QrCodePng)> BeginTwoFactorSetupAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new Exception("User not found");
+
+        var secretBytes = KeyGeneration.GenerateRandomKey(20);
+        var secretBase32 = Base32Encoding.ToString(secretBytes);
+
+        await _twoFactorRepository.UpsertTwoFactorSecretAsync(userId, secretBase32, false);
+
+        var issuer = "CrypticGateway";
+        var account = user.Email;
+        var otpauth = $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(account)}" +
+                      $"?secret={secretBase32}&issuer={Uri.EscapeDataString(issuer)}";
+
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrData = qrGenerator.CreateQrCode(otpauth, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrData);
+        var qrCodePng = qrCode.GetGraphic(20);
+
+        return (secretBase32, qrCodePng);
+    }
+
+    public async Task<bool> ConfirmTwoFactorAsync(int userId, string code)
+    {
+        var twoFactor = await _twoFactorRepository.GetTwoFactorByUserIdAsync(userId);
+        if (twoFactor == null || twoFactor.IsEnabled) return false;
+
+        var secretBytes = Base32Encoding.ToBytes(twoFactor.Secret);
+        var totp = new Totp(secretBytes);
+        bool isValid = totp.VerifyTotp(code, out long _, VerificationWindow.RfcSpecifiedNetworkDelay);
+        if (!isValid) return false;
+
+        await _twoFactorRepository.UpdateTwoFactorEnabledAsync(userId, true, DateTime.UtcNow);
+        return true;
+    }
+
+    public async Task<bool> VerifyTwoFactorCodeAsync(int userId, string code)
+    {
+        var twoFactor = await _twoFactorRepository.GetTwoFactorByUserIdAsync(userId);
+        if (twoFactor == null || !twoFactor.IsEnabled) return false;
+
+        var secretBytes = Base32Encoding.ToBytes(twoFactor.Secret);
+        var totp = new Totp(secretBytes);
+        bool isValid = totp.VerifyTotp(code, out long _, VerificationWindow.RfcSpecifiedNetworkDelay);
+        if (!isValid) return false;
+
+        await _twoFactorRepository.UpdateTwoFactorEnabledAsync(userId, true, DateTime.UtcNow);
+        return true;
+    }
+
+    public async Task DisableTwoFactorAsync(int userId)
+    {
+        await _twoFactorRepository.DisableTwoFactorAsync(userId);
+    }
+
+    public async Task<bool> IsTwoFactorEnabledAsync(int userId)
+    {
+        var twoFactor = await _twoFactorRepository.GetTwoFactorByUserIdAsync(userId);
+        return twoFactor != null && twoFactor.IsEnabled;
+    }
+
+    public async Task<UserDto> ValidateCredentialsAsync(string email, string password)
+    {
+        var userTable = await _userRepository.GetByEmailAsync(email);
+        if (userTable == null)
+            return null;
+
+        // Перевірка хешованого пароля (припустимо, що в userTable.PasswordHash міститься bcrypt-хеш)
+        bool passwordMatches = BCrypt.Net.BCrypt.Verify(password, userTable.PasswordHash);
+        if (!passwordMatches)
+            return null;
+
+        return new UserDto
+        {
+            Id = userTable.Id,       // додайте Id у UserDto, якщо його немає
+            Name = userTable.Name,
+            Email = userTable.Email
+        };
+    }
+
+    public async Task<TokenResponse> GenerateTokensAsync(UserDto user)
+    {
+        // Припустимо, що ви створюєте JWT так:
+        var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_jwtConfig.JwtSecret);
+        var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
+        {
+            Subject = new System.Security.Claims.ClaimsIdentity(new[]
+            {
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email),
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Name)
+                }),
+            Expires = DateTime.UtcNow.AddHours(1),
+            SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
+                new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+                Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        string jwt = tokenHandler.WriteToken(token);
+
+        // Тут можете додати й refreshToken (генерація, збереження в БД тощо).
+        string refreshToken = Guid.NewGuid().ToString(); // приклад
+
+        return new TokenResponse
+        {
+            AccessToken = jwt,
+            RefreshToken = refreshToken
+        };
     }
 }

@@ -9,5 +9,6 @@ public static class ReposDIConfigure
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<ITwoFactorRepository, TwoFactorRepository>();
     }
 }

@@ -11,4 +11,7 @@ public class UserLoginDto
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; }
+
+    [StringLength(6, ErrorMessage = "Code must be 6 characters long", MinimumLength = 6)]
+    public string? Code { get; set; } 
 }

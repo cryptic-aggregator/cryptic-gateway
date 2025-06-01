@@ -52,12 +52,49 @@ public class UserController : BaseController
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var tokenResponse = await _userService.LoginAsync(loginDto);
-        if (tokenResponse == null)
-            return Unauthorized(new { message = "Invalid email or password" });
+        var user = await _userService.ValidateCredentialsAsync(loginDto.Email, loginDto.Password);
+        if (user == null)
+            return Unauthorized(new { message = "Invalid email or password." });
 
-        return Ok(tokenResponse);
+        bool is2FaEnabled = await _userService.IsTwoFactorEnabledAsync(user.Id);
+
+        if (is2FaEnabled && string.IsNullOrWhiteSpace(loginDto.Code))
+        {
+            return Ok(new
+            {
+                requires2FA = true,
+                userId = user.Id
+            });
+        }
+
+        if (is2FaEnabled)
+        {
+            bool valid2Fa = await _userService.VerifyTwoFactorCodeAsync(user.Id, loginDto.Code);
+            if (!valid2Fa)
+                return Unauthorized(new { message = "Invalid two-factor authentication code." });
+        }
+
+        var tokens = await _userService.GenerateTokensAsync(user);
+        return Ok(new
+        {
+            requires2FA = false,
+            accessToken = tokens.AccessToken,
+            refreshToken = tokens.RefreshToken
+        });
     }
+    //public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
+    //{
+    //    if (!ModelState.IsValid)
+    //        return BadRequest(ModelState);
+
+    //    var tokenResponse = await _userService.LoginAsync(loginDto);
+    //    if (tokenResponse == null)
+    //        return Unauthorized(new { message = "Invalid email or password" });
+
+    //    return Ok(tokenResponse);
+    //}
+
+
 
     [Authorize]
     [HttpDelete("delete")]
@@ -96,11 +133,14 @@ public class UserController : BaseController
         if (userDto == null)
             return NotFound();
 
+        var isTwoFactorEnabled = await _userService.IsTwoFactorEnabledAsync(userId);
+
         return Ok(new
         {
             userId = userId,
             Email = userDto.Email,
             Name = userDto.Name,
+            IsTwoFactorEnabled = isTwoFactorEnabled
         });
     }
 
@@ -143,5 +183,52 @@ public class UserController : BaseController
             return Ok(new { message = "Пароль успішно скинуто." });
         else
             return BadRequest(new { message = "Невірний код або email." });
+    }
+
+    [Authorize]
+    [HttpGet("2fa/setup")]
+    public async Task<IActionResult> BeginTwoFactorSetup()
+    {
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (idClaim == null || !int.TryParse(idClaim, out int userId))
+            return Unauthorized();
+
+        var (secret, qrPngBytes) = await _userService.BeginTwoFactorSetupAsync(userId);
+        var dto = new TwoFactorSetupDto
+        {
+            Secret = secret,
+            QrCodeBase64 = Convert.ToBase64String(qrPngBytes)
+        };
+        return Ok(dto);
+    }
+
+    [Authorize]
+    [HttpPost("2fa/confirm")]
+    public async Task<IActionResult> ConfirmTwoFactor([FromBody] TwoFactorConfirmDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (idClaim == null || !int.TryParse(idClaim, out int userId))
+            return Unauthorized();
+
+        bool success = await _userService.ConfirmTwoFactorAsync(userId, dto.Code);
+        if (!success)
+            return BadRequest(new { message = "Invalid authentication code." });
+
+        return Ok(new { message = "Two-factor authentication enabled." });
+    }
+
+    [Authorize]
+    [HttpPost("2fa/disable")]
+    public async Task<IActionResult> DisableTwoFactor()
+    {
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (idClaim == null || !int.TryParse(idClaim, out int userId))
+            return Unauthorized();
+
+        await _userService.DisableTwoFactorAsync(userId);
+        return Ok(new { message = "Two-factor authentication disabled." });
     }
 }
