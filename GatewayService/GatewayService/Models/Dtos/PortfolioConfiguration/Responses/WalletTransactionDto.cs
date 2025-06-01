@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Cryptic.PortfolioAnalytic.Models.Requests;
 using Newtonsoft.Json;
 
 namespace GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
@@ -39,7 +40,7 @@ public class WalletTransactionDto
 
     [JsonPropertyName("transaction_type")]
     [JsonProperty("transaction_type")]
-    public int TransactionType { get; set; }
+    public TransactionTypeFilter TransactionType { get; set; }
 
     [JsonPropertyName("chain")]
     [JsonProperty("chain")]

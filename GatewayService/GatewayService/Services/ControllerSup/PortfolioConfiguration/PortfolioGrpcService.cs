@@ -307,7 +307,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 ToAddress = tx.ToAddress,
                 Amount = tx.Amount,
                 Timestamp = tx.Timestamp,
-                TransactionType = tx.TransactionType,
+                TransactionType = (TransactionTypeFilter)tx.TransactionType,
                 Chain = tx.Chain,
                 Fee = tx.Fee,
                 Status = tx.Status,
