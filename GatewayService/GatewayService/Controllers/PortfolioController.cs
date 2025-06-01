@@ -134,4 +134,12 @@ public class PortfolioController : BaseController
 
         return Ok(result);
     }
+    
+    [HttpGet("{id}/info-with-wallets")]
+    public async Task<IActionResult> GetPortfolioInfoWithWallets(int id)
+    {
+        var ownerId = UserClaims.UserId;
+        var result = await _portfolioGrpcService.GetPortfolioInfoWithWalletsAsync(id, ownerId);
+        return Ok(result);
+    }
 }

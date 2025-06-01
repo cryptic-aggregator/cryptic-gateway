@@ -331,4 +331,48 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             PerPage = grpcResponse.PerPage
         };
     }
+    
+    public async Task<PortfolioInfoWithWalletsResponseModel> GetPortfolioInfoWithWalletsAsync(int portfolioId, int ownerId)
+    {
+        var grpcReq = new GetPortfolioInfoRequest
+        {
+            PortfolioId = portfolioId,
+            OwnerId     = ownerId
+        };
+        var grpcResp = await _grpcClient.GetPortfolioWalletsInfoAsync(grpcReq);
+
+        var result = new PortfolioInfoWithWalletsResponseModel
+        {
+            Portfolio = new PortfolioResponseModel
+            {
+                Id = grpcResp.Portfolio.Id,
+                Name = grpcResp.Portfolio.Name,
+                OwnerId = grpcResp.Portfolio.OwnerId,
+                CreatedAt = grpcResp.Portfolio.CreatedAt
+            }
+        };
+
+        foreach (var w in grpcResp.WalletInfo)
+        {
+            var walletDto = new WalletWithCoinsDto
+            {
+                WalletId = w.WalletId,
+                WalletAddress = w.WalletAddress
+            };
+
+            foreach (var c in w.Coins)
+            {
+                walletDto.Coins.Add(new CoinMinDto
+                {
+                    Symbol = c.Symbol,
+                    Balance = c.Balance,
+                    Image = c.Image,
+                    Name = c.Name
+                });
+            }
+            result.WalletInfo.Add(walletDto);
+        }
+
+        return result;
+    }
 }
