@@ -6,13 +6,9 @@ namespace GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
 
 public class WalletWithCoinsDto
 {
-    [JsonPropertyName("walletId")]
-    [JsonProperty("walletId")]
-    public int WalletId { get; set; }
-
-    [JsonPropertyName("walletAddress")]
-    [JsonProperty("walletAddress")]
-    public string WalletAddress { get; set; }
+    [JsonPropertyName("wallet")]
+    [JsonProperty("wallet")]
+    public WalletModel Wallet { get; set; }
 
     [JsonPropertyName("coins")]
     [JsonProperty("coins")]

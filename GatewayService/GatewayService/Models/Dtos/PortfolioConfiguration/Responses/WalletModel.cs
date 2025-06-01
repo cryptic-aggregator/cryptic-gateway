@@ -41,4 +41,8 @@ public class WalletModel
     [JsonPropertyName("connector")]
     [JsonProperty("connector")]
     public string Connector { get; set; }
+    
+    [JsonPropertyName("network")]
+    [JsonProperty("network")]
+    public string Network { get; set; }
 }

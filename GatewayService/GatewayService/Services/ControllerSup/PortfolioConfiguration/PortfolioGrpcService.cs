@@ -268,7 +268,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
     {
         if (portfolioId <= 0)
             throw new ArgumentException("Invalid portfolioId");
-        
+
         var grpcRequest = new GetPortfolioTransactionsRequest
         {
             PortfolioId = portfolioId,
@@ -287,7 +287,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         }
 
         var grpcResponse = await _grpcClient.GetPortfolioTransactionsAsync(grpcRequest);
-        
+
         var portfolioDto = new PortfolioResponseModel
         {
             Id = grpcResponse.Portfolio.Id,
@@ -331,13 +331,14 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             PerPage = grpcResponse.PerPage
         };
     }
-    
-    public async Task<PortfolioInfoWithWalletsResponseModel> GetPortfolioInfoWithWalletsAsync(int portfolioId, int ownerId)
+
+    public async Task<PortfolioInfoWithWalletsResponseModel> GetPortfolioInfoWithWalletsAsync(int portfolioId,
+        int ownerId)
     {
         var grpcReq = new GetPortfolioInfoRequest
         {
             PortfolioId = portfolioId,
-            OwnerId     = ownerId
+            OwnerId = ownerId
         };
         var grpcResp = await _grpcClient.GetPortfolioWalletsInfoAsync(grpcReq);
 
@@ -351,18 +352,31 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 CreatedAt = grpcResp.Portfolio.CreatedAt
             }
         };
-
+        
         foreach (var w in grpcResp.WalletInfo)
         {
-            var walletDto = new WalletWithCoinsDto
+            var walletDto = new WalletModel
             {
-                WalletId = w.WalletId,
-                WalletAddress = w.WalletAddress
+                Id = w.Wallet.Id,
+                PortfolioId = w.Wallet.PortfolioId,
+                WalletAddress = w.Wallet.WalletAddress,
+                CreatedAt = w.Wallet.CreatedAt,
+                ConnectionType = (WalletConnectionType)w.Wallet.ConnectionType,
+                Visibility = (WalletVisibility)w.Wallet.Visibility,
+                Name = w.Wallet.Name,
+                CaipAddress = w.Wallet.CaipAddress,
+                Connector = w.Wallet.Connector,
+                Network = w.Wallet.Network
+            };
+            
+            var walletWithCoinsDto = new WalletWithCoinsDto
+            {
+                Wallet = walletDto
             };
 
             foreach (var c in w.Coins)
             {
-                walletDto.Coins.Add(new CoinMinDto
+                walletWithCoinsDto.Coins.Add(new CoinMinDto
                 {
                     Symbol = c.Symbol,
                     Balance = c.Balance,
@@ -370,7 +384,8 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                     Name = c.Name
                 });
             }
-            result.WalletInfo.Add(walletDto);
+
+            result.WalletInfo.Add(walletWithCoinsDto);
         }
 
         return result;
