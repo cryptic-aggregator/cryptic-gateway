@@ -20,14 +20,14 @@ public class PortfolioController : BaseController
     {
         _portfolioGrpcService = portfolioGrpcService;
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CreatePortfolio([FromBody] CreatePortfolioRequestModel request)
     {
         var result = await _portfolioGrpcService.CreatePortfolioAsync(request, UserClaims.UserId);
         return Ok(result);
     }
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPortfolio(int id)
     {
@@ -36,7 +36,7 @@ public class PortfolioController : BaseController
             return NotFound();
         return Ok(result);
     }
-    
+
     [HttpGet("list")]
     public async Task<IActionResult> GetPortfoliosByOwner()
     {
@@ -45,13 +45,12 @@ public class PortfolioController : BaseController
     }
 
     [HttpPatch("{id}")]
-
     public async Task<IActionResult> UpdatePortfolio([FromBody] UpdatePortfolioRequestModel portfolio, int id)
     {
         var result = await _portfolioGrpcService.UpdatePortfolioAsync(portfolio, id, UserClaims.UserId);
         return Ok(result);
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePortfolio(int id)
     {
@@ -60,30 +59,30 @@ public class PortfolioController : BaseController
             return Ok();
         return BadRequest();
     }
-    
+
     [HttpPost("{id}/connect-wallets")]
     public async Task<IActionResult> ConnectWallets([FromBody] ConnectWalletsRequestModel request, int id)
     {
         var result = await _portfolioGrpcService.ConnectWalletsAsync(request, id, UserClaims.UserId);
         return Ok(result);
     }
-    
+
     [HttpGet("{id}/info")]
     public async Task<IActionResult> GetPortfolioInfo(int id)
     {
         var result = await _portfolioGrpcService.GetPortfolioInfoAsync(id, UserClaims.UserId);
         return Ok(result);
     }
-    
+
     [HttpPatch("{portfolioId}/wallet/{walletId}")]
     public async Task<IActionResult> PatchWalletVisibility(
-        int portfolioId, 
-        int walletId, 
+        int portfolioId,
+        int walletId,
         [FromBody] PatchWalletVisibilityModel model)
     {
         if (model == null)
             return BadRequest("No body provided");
-        
+
         var success = await _portfolioGrpcService.PatchWalletVisibility(portfolioId, walletId, (int)model.Visibility);
 
         if (!success)
@@ -91,7 +90,7 @@ public class PortfolioController : BaseController
 
         return Ok();
     }
-    
+
     [HttpGet("{portfolioId}/wallets/")]
     public async Task<IActionResult> GetAllWallets(int portfolioId)
     {
@@ -101,16 +100,46 @@ public class PortfolioController : BaseController
         }
 
         var wallets = await _portfolioGrpcService.GetWalletsByPortfolioIdAsync(portfolioId);
-        
+
         return Ok(wallets);
     }
-    
+
     [HttpGet("{id}/analytic/allocations")]
     public async Task<IActionResult> GetPortfolioCalculation(int id)
     {
-        var ownerId = UserClaims.UserId;  
-    
+        var ownerId = UserClaims.UserId;
+
         var result = await _portfolioGrpcService.GetPortfolioCalculationAsync(id, ownerId);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/transactions")]
+    public async Task<ActionResult<PortfolioTransactionsResponseModel>> GetPortfolioTransactions(
+        int id,
+        [FromQuery] GetPortfolioTransactionsRequestModel filters)
+    {
+        var ownerId = UserClaims.UserId;
+        if (id <= 0)
+            return BadRequest("Invalid portfolio ID");
+
+        PortfolioTransactionsResponseModel result;
+        try
+        {
+            result = await _portfolioGrpcService.GetPortfolioTransactionsAsync(id, ownerId, filters);
+        }
+        catch (Grpc.Core.RpcException ex) when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+        {
+            return NotFound(ex.Status.Detail);
+        }
+
+        return Ok(result);
+    }
+    
+    [HttpGet("{id}/info-with-wallets")]
+    public async Task<IActionResult> GetPortfolioInfoWithWallets(int id)
+    {
+        var ownerId = UserClaims.UserId;
+        var result = await _portfolioGrpcService.GetPortfolioInfoWithWalletsAsync(id, ownerId);
         return Ok(result);
     }
 }

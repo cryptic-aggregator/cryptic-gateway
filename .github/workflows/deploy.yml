@@ -33,29 +33,5 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
-
-      - name: Deploy SSH
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: 20.215.241.137
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_SSH_PASSWORD }}
-          port: 22
-          script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest
-            docker stop cryptic-gateway-service || true
-            docker rm cryptic-gateway-service || true
-            docker run -d --name cryptic-gateway-service -p 80:8080 \
-            -e "ConnString=${{ secrets.ConnString }}" \
-            -e "Schema=${{ secrets.Schema }}" \
-            -e "JwtSecret=${{ secrets.JWTSECRET }}" \
-            -e "BlockchainInteractionConnString=${{ secrets.BLOCKCHAININTERACTIONCONNSTRING }}" \
-            -e "PortfolioConfigurationConnString=${{ secrets.PORTFOLIOCONFIGURATIONCONNSTRING }}" \
-            -e "SmtpHost=${{ secrets.SMTPHOST }}" \
-            -e "SmtpPort=${{ secrets.SMTPPORT }}" \
-            -e "SmtpUsername=${{ secrets.SMTPUSERNAME }}" \
-            -e "SmtpPassword=${{ secrets.SMTPPASSWORD }}" \
-            -e "SmtpFrom=${{ secrets.SMTPFROM }}" \
-            ${{ secrets.DOCKER_USERNAME }}/cryptic-gateway-service:latest

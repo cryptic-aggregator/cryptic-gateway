@@ -12,8 +12,7 @@ public class PortfolioResponseModel
         
     [JsonProperty("owner_id")]
     public int OwnerId { get; set; }
-        
-    // Unix timestamp у секундах
+    
     [JsonProperty("created_at")]
     public long CreatedAt { get; set; }
 }

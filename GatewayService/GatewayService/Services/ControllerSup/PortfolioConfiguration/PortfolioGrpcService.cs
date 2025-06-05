@@ -1,4 +1,5 @@
 using Cryptic_Domain.Enums.Portfolio;
+using Cryptic.PortfolioAnalytic.Models.Requests;
 using Cryptic.PortfolioConfiguration.Models.Requests;
 using Cryptic.PortfolioConfiguration.Models.Responses;
 using Cryptic.PortfolioConfiguration.Rpc;
@@ -6,6 +7,7 @@ using GatewayService.Interfaces.Services;
 using GatewayService.Models.Dtos.BlockchainInteraction.Responses;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
+using Google.Protobuf.WellKnownTypes;
 
 namespace GatewayService.Services.ControllerSup.PortfolioConfiguration;
 
@@ -127,9 +129,9 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 WalletAddress = w.WalletAddress,
             });
         }
-        
+
         var grpcResponse = await _grpcClient.ConnectWalletsAsync(grpcRequest);
-        
+
         return new ConnectWalletsResponseModel
         {
             Wallets = grpcResponse.Wallets
@@ -255,6 +257,136 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 })
                 .ToList(),
         };
+
+        return result;
+    }
+
+    public async Task<PortfolioTransactionsResponseModel> GetPortfolioTransactionsAsync(
+        int portfolioId,
+        int ownerId,
+        GetPortfolioTransactionsRequestModel filters)
+    {
+        if (portfolioId <= 0)
+            throw new ArgumentException("Invalid portfolioId");
+
+        var grpcRequest = new GetPortfolioTransactionsRequest
+        {
+            PortfolioId = portfolioId,
+            Page = filters.Page <= 0 ? 1 : filters.Page,
+            PerPage = filters.PerPage <= 0 ? 10 : filters.PerPage,
+            TransactionType = (TransactionTypeFilter)filters.TransactionType
+        };
+
+        if (filters.DateFrom.HasValue && filters.DateTo.HasValue)
+        {
+            grpcRequest.DateRange = new DateRange
+            {
+                From = filters.DateFrom.Value,
+                To = filters.DateTo.Value
+            };
+        }
+
+        var grpcResponse = await _grpcClient.GetPortfolioTransactionsAsync(grpcRequest);
+
+        var portfolioDto = new PortfolioResponseModel
+        {
+            Id = grpcResponse.Portfolio.Id,
+            Name = grpcResponse.Portfolio.Name,
+            OwnerId = grpcResponse.Portfolio.OwnerId,
+            CreatedAt = grpcResponse.Portfolio.CreatedAt
+        };
+
+        var combinedTransactions = grpcResponse.Transactions
+            .SelectMany(inner => inner.Transactions)
+            .Select(tx => new WalletTransactionDto
+            {
+                TransactionId = tx.TransactionId,
+                WalletId = tx.WalletId,
+                TransactionHash = tx.TransactionHash,
+                FromAddress = tx.FromAddress,
+                ToAddress = tx.ToAddress,
+                Amount = tx.Amount,
+                Timestamp = tx.Timestamp,
+                TransactionType = (TransactionTypeFilter)tx.TransactionType,
+                Chain = tx.Chain,
+                Fee = tx.Fee,
+                Status = tx.Status,
+                Token = new TokenInfoDto
+                {
+                    TokenId = tx.Token.TokenId,
+                    Symbol = tx.Token.Symbol,
+                    Name = tx.Token.Name,
+                    LogoUri = tx.Token.LogoUri,
+                    LastPrice = tx.Token.LastPrice
+                }
+            })
+            .ToList();
+
+        return new PortfolioTransactionsResponseModel
+        {
+            Portfolio = portfolioDto,
+            Transactions = combinedTransactions,
+            Total = grpcResponse.Total,
+            Page = grpcResponse.Page,
+            PerPage = grpcResponse.PerPage
+        };
+    }
+
+    public async Task<PortfolioInfoWithWalletsResponseModel> GetPortfolioInfoWithWalletsAsync(int portfolioId,
+        int ownerId)
+    {
+        var grpcReq = new GetPortfolioInfoRequest
+        {
+            PortfolioId = portfolioId,
+            OwnerId = ownerId
+        };
+        var grpcResp = await _grpcClient.GetPortfolioWalletsInfoAsync(grpcReq);
+
+        var result = new PortfolioInfoWithWalletsResponseModel
+        {
+            Portfolio = new PortfolioResponseModel
+            {
+                Id = grpcResp.Portfolio.Id,
+                Name = grpcResp.Portfolio.Name,
+                OwnerId = grpcResp.Portfolio.OwnerId,
+                CreatedAt = grpcResp.Portfolio.CreatedAt
+            }
+        };
+        
+        foreach (var w in grpcResp.WalletInfo)
+        {
+            var walletDto = new WalletModel
+            {
+                Id = w.Wallet.Id,
+                PortfolioId = w.Wallet.PortfolioId,
+                WalletAddress = w.Wallet.WalletAddress,
+                CreatedAt = w.Wallet.CreatedAt,
+                ConnectionType = (WalletConnectionType)w.Wallet.ConnectionType,
+                Visibility = (WalletVisibility)w.Wallet.Visibility,
+                Name = w.Wallet.Name,
+                CaipAddress = w.Wallet.CaipAddress,
+                Connector = w.Wallet.Connector,
+                Network = w.Wallet.Network
+            };
+            
+            var walletWithCoinsDto = new WalletWithCoinsDto
+            {
+                Wallet = walletDto
+            };
+
+            foreach (var c in w.Coins)
+            {
+                walletWithCoinsDto.Coins.Add(new CoinMinDto
+                {
+                    Symbol = c.Symbol,
+                    Balance = c.Balance,
+                    Image = c.Image,
+                    Name = c.Name
+                });
+            }
+
+            result.WalletInfo.Add(walletWithCoinsDto);
+        }
 
         return result;
     }
