@@ -210,18 +210,19 @@ public class PortfolioGrpcService : IPortfolioGrpcService
 
         return response.Wallets.Select(w => new WalletModel
         {
-            Id             = w.Id,
-            PortfolioId    = w.PortfolioId,
-            WalletAddress  = w.WalletAddress,
-            CreatedAt      = w.CreatedAt,
+            Id = w.Id,
+            PortfolioId = w.PortfolioId,
+            WalletAddress = w.WalletAddress,
+            CreatedAt = w.CreatedAt,
             ConnectionType = (WalletConnectionType)w.ConnectionType,
-            Visibility     = (WalletVisibility)w.Visibility,
-            Name           = w.Name,
-            CaipAddress    = w.CaipAddress,
-            Connector      = w.Connector,
-            Network        = w.Network
+            Visibility = (WalletVisibility)w.Visibility,
+            Name = w.Name,
+            CaipAddress = w.CaipAddress,
+            Connector = w.Connector,
+            Network = w.Network
         }).ToList();
     }
+
     public async Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility)
     {
         var request = new PatchWalletVisibilityRequest
@@ -280,7 +281,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             PortfolioId = portfolioId,
             Page = filters.Page <= 0 ? 1 : filters.Page,
             PerPage = filters.PerPage <= 0 ? 10 : filters.PerPage,
-            TransactionType = (TransactionTypeFilter)filters.TransactionType
+            TransactionType = (TransactionTypeFilter)filters.TransactionType, Search = filters.Search
         };
 
         if (filters.DateFrom.HasValue && filters.DateTo.HasValue)
@@ -358,7 +359,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 CreatedAt = grpcResp.Portfolio.CreatedAt
             }
         };
-        
+
         foreach (var w in grpcResp.WalletInfo)
         {
             var walletDto = new WalletModel
@@ -374,7 +375,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 Connector = w.Wallet.Connector,
                 Network = w.Wallet.Network
             };
-            
+
             var walletWithCoinsDto = new WalletWithCoinsDto
             {
                 Wallet = walletDto
@@ -396,8 +397,8 @@ public class PortfolioGrpcService : IPortfolioGrpcService
 
         return result;
     }
-    
-    public async Task<PortfolioCorrelationResponseModel> 
+
+    public async Task<PortfolioCorrelationResponseModel>
         GetPortfolioCorrelationAsync(
             int portfolioId,
             int ownerId,
@@ -420,13 +421,14 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         {
             dto.Points.Add(new PortfolioCorrelationPointDto
             {
-                Ts                   = p.Ts,
-                PortfolioValue       = p.PortfolioValue,
-                TokenPrice           = p.TokenPrice,
-                PortfolioChangePct   = p.PortfolioChangePct,
-                TokenChangePct       = p.TokenChangePct
+                Ts = p.Ts,
+                PortfolioValue = p.PortfolioValue,
+                TokenPrice = p.TokenPrice,
+                PortfolioChangePct = p.PortfolioChangePct,
+                TokenChangePct = p.TokenChangePct
             });
         }
+
         return dto;
     }
 }
