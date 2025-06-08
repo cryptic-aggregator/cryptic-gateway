@@ -14,7 +14,10 @@ public interface IPortfolioGrpcService
     Task<bool> DeletePortfolioAsync(int id, int ownerId);
 
     Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility);
-    Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId);
+
+    Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(
+        int portfolioId,
+        WalletsFilterModel filters);
 
     Task<PortfolioCalculationResponseModel> GetPortfolioCalculationAsync(int portfolioId, int ownerId);
 
@@ -24,4 +27,10 @@ public interface IPortfolioGrpcService
         GetPortfolioTransactionsRequestModel filters);
     
     Task<PortfolioInfoWithWalletsResponseModel> GetPortfolioInfoWithWalletsAsync(int portfolioId, int ownerId);
+
+    Task<PortfolioCorrelationResponseModel>
+        GetPortfolioCorrelationAsync(
+            int portfolioId,
+            int ownerId,
+            PortfolioCorrelationRequestModel filters);
 }

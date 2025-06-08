@@ -193,29 +193,35 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         };
     }
 
-    public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId)
+    public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(
+        int portfolioId,
+        WalletsFilterModel filters)
     {
-        var request = new GetWalletsByPortfolioIdRequest
+        var grpcRequest = new GetWalletsByPortfolioIdRequest
         {
             PortfolioId = portfolioId
         };
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+            grpcRequest.Search = filters.Search;
+        if (filters.Networks != null)
+            grpcRequest.Networks.AddRange(filters.Networks);
 
-        var response = await _grpcClient.GetWalletsByPortfolioIdAsync(request);
+        var response = await _grpcClient.GetWalletsByPortfolioIdAsync(grpcRequest);
 
         return response.Wallets.Select(w => new WalletModel
         {
-            Id = w.Id,
-            PortfolioId = w.PortfolioId,
-            WalletAddress = w.WalletAddress,
-            CreatedAt = w.CreatedAt,
+            Id             = w.Id,
+            PortfolioId    = w.PortfolioId,
+            WalletAddress  = w.WalletAddress,
+            CreatedAt      = w.CreatedAt,
             ConnectionType = (WalletConnectionType)w.ConnectionType,
-            Visibility = (WalletVisibility)w.Visibility,
-            CaipAddress = w.CaipAddress,
-            Connector = w.Connector,
-            Name = w.Name,
+            Visibility     = (WalletVisibility)w.Visibility,
+            Name           = w.Name,
+            CaipAddress    = w.CaipAddress,
+            Connector      = w.Connector,
+            Network        = w.Network
         }).ToList();
     }
-
     public async Task<bool> PatchWalletVisibility(int portfolioId, int walletId, int visibility)
     {
         var request = new PatchWalletVisibilityRequest
@@ -389,5 +395,38 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         }
 
         return result;
+    }
+    
+    public async Task<PortfolioCorrelationResponseModel> 
+        GetPortfolioCorrelationAsync(
+            int portfolioId,
+            int ownerId,
+            PortfolioCorrelationRequestModel filters)
+    {
+        var grpcReq = new GetPortfolioCorrelationRequest
+        {
+            PortfolioId = portfolioId,
+            TokenSymbol = filters.Symbol,
+            FromTs = filters.FromTs,
+            ToTs = filters.ToTs,
+            PointsCount = filters.PointsCount
+        };
+
+        var grpcResp = await _grpcClient
+            .GetPortfolioCorrelationAsync(grpcReq);
+
+        var dto = new PortfolioCorrelationResponseModel();
+        foreach (var p in grpcResp.Points)
+        {
+            dto.Points.Add(new PortfolioCorrelationPointDto
+            {
+                Ts                   = p.Ts,
+                PortfolioValue       = p.PortfolioValue,
+                TokenPrice           = p.TokenPrice,
+                PortfolioChangePct   = p.PortfolioChangePct,
+                TokenChangePct       = p.TokenChangePct
+            });
+        }
+        return dto;
     }
 }

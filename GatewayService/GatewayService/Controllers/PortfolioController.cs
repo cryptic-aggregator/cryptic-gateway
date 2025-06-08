@@ -91,16 +91,15 @@ public class PortfolioController : BaseController
         return Ok();
     }
 
-    [HttpGet("{portfolioId}/wallets/")]
-    public async Task<IActionResult> GetAllWallets(int portfolioId)
+    [HttpGet("{id}/wallets")]
+    public async Task<IActionResult> GetAllWallets(
+        int id,
+        [FromQuery] WalletsFilterModel filters)
     {
-        if (portfolioId <= 0)
-        {
+        if (id <= 0)
             return BadRequest("Invalid portfolio ID");
-        }
 
-        var wallets = await _portfolioGrpcService.GetWalletsByPortfolioIdAsync(portfolioId);
-
+        var wallets = await _portfolioGrpcService.GetWalletsByPortfolioIdAsync(id, filters);
         return Ok(wallets);
     }
 
@@ -134,7 +133,31 @@ public class PortfolioController : BaseController
 
         return Ok(result);
     }
-    
+
+    [HttpGet("{id}/correlation")]
+    public async Task<ActionResult<List<PortfolioCorrelationResponseModel>>> GetCorrelation(
+        int id,
+        [FromQuery] PortfolioCorrelationRequestModel filters)
+    {
+        var ownerId = UserClaims.UserId;
+        if (id <= 0)
+            return BadRequest("Invalid portfolio ID");
+
+        PortfolioCorrelationResponseModel result;
+        try
+        {
+            result = await _portfolioGrpcService
+                .GetPortfolioCorrelationAsync(id, ownerId, filters);
+        }
+        catch (Grpc.Core.RpcException ex)
+            when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+        {
+            return NotFound(ex.Status.Detail);
+        }
+
+        return Ok(result);
+    }
+
     [HttpGet("{id}/info-with-wallets")]
     public async Task<IActionResult> GetPortfolioInfoWithWallets(int id)
     {
