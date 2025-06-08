@@ -25,4 +25,8 @@ public class GetPortfolioTransactionsRequestModel
     [JsonPropertyName("date_to")]
     [JsonProperty("dateTo")]
     public long? DateTo { get; set; }
+    
+    [JsonPropertyName("search")]
+    [JsonProperty("search")]
+    public string? Search { get; set; }
 }

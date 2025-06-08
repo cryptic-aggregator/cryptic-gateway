@@ -193,14 +193,20 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         };
     }
 
-    public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(int portfolioId)
+    public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(
+        int portfolioId,
+        WalletsFilterModel filters)
     {
-        var request = new GetWalletsByPortfolioIdRequest
+        var grpcRequest = new GetWalletsByPortfolioIdRequest
         {
             PortfolioId = portfolioId
         };
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+            grpcRequest.Search = filters.Search;
+        if (filters.Networks != null)
+            grpcRequest.Networks.AddRange(filters.Networks);
 
-        var response = await _grpcClient.GetWalletsByPortfolioIdAsync(request);
+        var response = await _grpcClient.GetWalletsByPortfolioIdAsync(grpcRequest);
 
         return response.Wallets.Select(w => new WalletModel
         {
@@ -210,9 +216,10 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             CreatedAt = w.CreatedAt,
             ConnectionType = (WalletConnectionType)w.ConnectionType,
             Visibility = (WalletVisibility)w.Visibility,
+            Name = w.Name,
             CaipAddress = w.CaipAddress,
             Connector = w.Connector,
-            Name = w.Name,
+            Network = w.Network
         }).ToList();
     }
 
@@ -274,7 +281,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             PortfolioId = portfolioId,
             Page = filters.Page <= 0 ? 1 : filters.Page,
             PerPage = filters.PerPage <= 0 ? 10 : filters.PerPage,
-            TransactionType = (TransactionTypeFilter)filters.TransactionType
+            TransactionType = (TransactionTypeFilter)filters.TransactionType, Search = filters.Search
         };
 
         if (filters.DateFrom.HasValue && filters.DateTo.HasValue)
@@ -352,7 +359,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 CreatedAt = grpcResp.Portfolio.CreatedAt
             }
         };
-        
+
         foreach (var w in grpcResp.WalletInfo)
         {
             var walletDto = new WalletModel
@@ -368,7 +375,7 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                 Connector = w.Wallet.Connector,
                 Network = w.Wallet.Network
             };
-            
+
             var walletWithCoinsDto = new WalletWithCoinsDto
             {
                 Wallet = walletDto
@@ -389,5 +396,39 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         }
 
         return result;
+    }
+
+    public async Task<PortfolioCorrelationResponseModel>
+        GetPortfolioCorrelationAsync(
+            int portfolioId,
+            int ownerId,
+            PortfolioCorrelationRequestModel filters)
+    {
+        var grpcReq = new GetPortfolioCorrelationRequest
+        {
+            PortfolioId = portfolioId,
+            TokenSymbol = filters.Symbol,
+            FromTs = filters.FromTs,
+            ToTs = filters.ToTs,
+            PointsCount = filters.PointsCount
+        };
+
+        var grpcResp = await _grpcClient
+            .GetPortfolioCorrelationAsync(grpcReq);
+
+        var dto = new PortfolioCorrelationResponseModel();
+        foreach (var p in grpcResp.Points)
+        {
+            dto.Points.Add(new PortfolioCorrelationPointDto
+            {
+                Ts = p.Ts,
+                PortfolioValue = p.PortfolioValue,
+                TokenPrice = p.TokenPrice,
+                PortfolioChangePct = p.PortfolioChangePct,
+                TokenChangePct = p.TokenChangePct
+            });
+        }
+
+        return dto;
     }
 }
