@@ -13,24 +13,35 @@ namespace GatewayService.Controllers;
 public class UserController : BaseController
 {
     private readonly IUserService _userService;
+    private readonly ILogger<UserController> _logger;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, ILogger<UserController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
     
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDto userDto)
     {
+        _logger.LogInformation("Register attempt for {Email}", userDto.Email);
+
         if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Invalid registration data for {Email}", userDto.Email);
             return BadRequest(ModelState);
+        }
 
         var userId = await _userService.RegisterUserAsync(userDto);
 
         if (userId == 0)
+        {
+            _logger.LogWarning("Registration failed for {Email}", userDto.Email);
             return BadRequest("Registration failed");
+        }
 
+        _logger.LogInformation("User {Email} registered successfully with id {UserId}", userDto.Email, userId);
         return Ok(new { UserId = userId });
     }
 
@@ -49,6 +60,7 @@ public class UserController : BaseController
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
     {
+        _logger.LogInformation("login attempt for {Email}", loginDto.Email);
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
@@ -73,6 +85,8 @@ public class UserController : BaseController
             if (!valid2Fa)
                 return Unauthorized(new { message = "Invalid two-factor authentication code." });
         }
+
+        _logger.LogInformation("User {Email} logged in successfully with id {UserId}", loginDto.Email, user.Id);
 
         var tokens = await _userService.GenerateTokensAsync(user);
         return Ok(new
@@ -190,16 +204,38 @@ public class UserController : BaseController
     public async Task<IActionResult> BeginTwoFactorSetup()
     {
         var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (idClaim == null || !int.TryParse(idClaim, out int userId))
-            return Unauthorized();
-
-        var (secret, qrPngBytes) = await _userService.BeginTwoFactorSetupAsync(userId);
-        var dto = new TwoFactorSetupDto
+        if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out int userId))
         {
-            Secret = secret,
-            QrCodeBase64 = Convert.ToBase64String(qrPngBytes)
-        };
-        return Ok(dto);
+            _logger.LogWarning("BeginTwoFactorSetup unauthorized: missing or invalid user claim.");
+            return Unauthorized();
+        }
+
+        _logger.LogInformation("BeginTwoFactorSetup called for UserId: {UserId}", userId);
+
+        try
+        {
+            var (secret, qrPngBytes) = await _userService.BeginTwoFactorSetupAsync(userId);
+            var dto = new TwoFactorSetupDto
+            {
+                Secret = secret,
+                QrCodeBase64 = Convert.ToBase64String(qrPngBytes)
+            };
+
+            _logger.LogInformation(
+                "Generated 2FA setup information for UserId: {UserId}",
+                userId
+            );
+            return Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error during BeginTwoFactorSetup for UserId: {UserId}",
+                userId
+            );
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     [Authorize]
@@ -207,17 +243,50 @@ public class UserController : BaseController
     public async Task<IActionResult> ConfirmTwoFactor([FromBody] TwoFactorConfirmDto dto)
     {
         if (!ModelState.IsValid)
+        {
+            _logger.LogWarning(
+                "ConfirmTwoFactor invalid model state: {ModelStateErrors}",
+                ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+            );
             return BadRequest(ModelState);
+        }
 
         var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (idClaim == null || !int.TryParse(idClaim, out int userId))
+        if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out int userId))
+        {
+            _logger.LogWarning("ConfirmTwoFactor unauthorized: missing or invalid user claim.");
             return Unauthorized();
+        }
 
-        bool success = await _userService.ConfirmTwoFactorAsync(userId, dto.Code);
-        if (!success)
-            return BadRequest(new { message = "Invalid authentication code." });
+        _logger.LogInformation("ConfirmTwoFactor in progress for UserId: {UserId}", userId);
 
-        return Ok(new { message = "Two-factor authentication enabled." });
+        try
+        {
+            bool success = await _userService.ConfirmTwoFactorAsync(userId, dto.Code);
+            if (!success)
+            {
+                _logger.LogWarning(
+                    "ConfirmTwoFactor failed: invalid 2FA code for UserId: {UserId}",
+                    userId
+                );
+                return BadRequest(new { message = "Invalid authentication code." });
+            }
+
+            _logger.LogInformation(
+                "Two-factor authentication enabled for UserId: {UserId}",
+                userId
+            );
+            return Ok(new { message = "Two-factor authentication enabled." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error during ConfirmTwoFactor for UserId: {UserId}",
+                userId
+            );
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     [Authorize]
@@ -225,10 +294,31 @@ public class UserController : BaseController
     public async Task<IActionResult> DisableTwoFactor()
     {
         var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (idClaim == null || !int.TryParse(idClaim, out int userId))
+        if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out int userId))
+        {
+            _logger.LogWarning("DisableTwoFactor unauthorized: missing or invalid user claim.");
             return Unauthorized();
+        }
 
-        await _userService.DisableTwoFactorAsync(userId);
-        return Ok(new { message = "Two-factor authentication disabled." });
+        _logger.LogInformation("DisableTwoFactor called for UserId: {UserId}", userId);
+
+        try
+        {
+            await _userService.DisableTwoFactorAsync(userId);
+            _logger.LogInformation(
+                "Two-factor authentication disabled for UserId: {UserId}",
+                userId
+            );
+            return Ok(new { message = "Two-factor authentication disabled." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error during DisableTwoFactor for UserId: {UserId}",
+                userId
+            );
+            return StatusCode(500, "Internal server error");
+        }
     }
 }

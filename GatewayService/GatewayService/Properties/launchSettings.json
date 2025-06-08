@@ -26,7 +26,10 @@
         "SmtpPort": "587",
         "SmtpUsername": "cryptic.aggregator@gmail.com",
         "SmtpPassword": "wyvm ejkw vhpq ious",
-        "SmtpFrom": "cryptic.aggregator@gmail.com"
+        "SmtpFrom": "cryptic.aggregator@gmail.com",
+        "LogstashHost": "37.27.196.233",
+        "LogstashPort": "30500",
+        "LogstashMinimumLevel": "Information"
       }
     },
     "https": {

@@ -319,7 +319,9 @@ public class UserService : IUserService
         string jwt = tokenHandler.WriteToken(token);
 
         // Тут можете додати й refreshToken (генерація, збереження в БД тощо).
-        string refreshToken = Guid.NewGuid().ToString(); // приклад
+        string refreshToken = GenerateRefreshToken(); // приклад
+
+        await _refreshTokenRepository.StoreRefreshTokenAsync(user.Id, refreshToken);
 
         return new TokenResponse
         {

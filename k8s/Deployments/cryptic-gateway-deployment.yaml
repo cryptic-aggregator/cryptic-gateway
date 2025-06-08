@@ -43,3 +43,10 @@ spec:
               value: "wyvm ejkw vhpq ious"
             - name: SmtpFrom
               value: "cryptic.aggregator@gmail.com"
+            - name: LogstashHost
+              value: "37.27.196.233"
+            - name: LogstashPort
+              value: "30500"
+            - name: LogstashMinimumLevel
+              value: "Information"
+  
