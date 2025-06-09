@@ -90,26 +90,26 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<TokenResponse> LoginAsync(UserLoginDto loginDto)
-    {
-        var user = await _userRepository.GetByEmailAsync(loginDto.Email);
-        if (user == null)
-            return null;
+    //public async Task<TokenResponse> LoginAsync(UserLoginDto loginDto)
+    //{
+    //    var user = await _userRepository.GetByEmailAsync(loginDto.Email);
+    //    if (user == null)
+    //        return null;
 
-        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
-            return null;
+    //    if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+    //        return null;
 
-        var accessToken = GenerateJwtToken(user);
-        var refreshToken = GenerateRefreshToken();
+    //    var accessToken = GenerateJwtToken(user);
+    //    var refreshToken = GenerateRefreshToken();
 
-        await _refreshTokenRepository.StoreRefreshTokenAsync(user.Id, refreshToken);
+    //    await _refreshTokenRepository.StoreRefreshTokenAsync(user.Id, refreshToken);
 
-        return new TokenResponse
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken
-        };
-    }
+    //    return new TokenResponse
+    //    {
+    //        AccessToken = accessToken,
+    //        RefreshToken = refreshToken
+    //    };
+    //}
 
     public async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
     {
@@ -121,7 +121,8 @@ public class UserService : IUserService
         if (user == null)
             return null;
 
-        var newAccessToken = GenerateJwtToken(user);
+
+        var newAccessToken = GenerateJwtToken(new UserDto {Id = user.Id, Name = user.Name, Email = user.Email });
         var newRefreshToken = GenerateRefreshToken();
         await _refreshTokenRepository.UpdateRefreshTokenAsync(user.Id, newRefreshToken);
 
@@ -142,7 +143,7 @@ public class UserService : IUserService
         return true;
     }
 
-    private string GenerateJwtToken(UserTable user)
+    private string GenerateJwtToken(UserDto user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtConfig.JwtSecret);
@@ -299,24 +300,7 @@ public class UserService : IUserService
 
     public async Task<TokenResponse> GenerateTokensAsync(UserDto user)
     {
-        // Припустимо, що ви створюєте JWT так:
-        var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_jwtConfig.JwtSecret);
-        var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
-        {
-            Subject = new System.Security.Claims.ClaimsIdentity(new[]
-            {
-                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email),
-                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Name)
-                }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
-                new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
-                Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        string jwt = tokenHandler.WriteToken(token);
+        string jwt = GenerateJwtToken(user);
 
         // Тут можете додати й refreshToken (генерація, збереження в БД тощо).
         string refreshToken = GenerateRefreshToken(); // приклад
