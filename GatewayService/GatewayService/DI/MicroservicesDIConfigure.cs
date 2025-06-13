@@ -1,5 +1,6 @@
 using Cryptic.BlockchainInteraction.Rpc;
 using Cryptic.PortfolioConfiguration.Rpc;
+using Cryptic.PushNotification.Rpc;
 using GatewayService.Interfaces.Config;
 
 namespace GatewayService.DI;
@@ -19,6 +20,11 @@ public static class MicroservicesDIConfigure
         }).ConfigurePrimaryHttpMessageHandler(() => customHandler);
         
         services.AddGrpcClient<PortfolioService.PortfolioServiceClient>(opt =>
+        {
+            opt.Address = new Uri(cfg.PortfolioConfigurationConnString);
+        }).ConfigurePrimaryHttpMessageHandler(() => customHandler);
+        
+        services.AddGrpcClient<PushNotificationService.PushNotificationServiceClient>(opt =>
         {
             opt.Address = new Uri(cfg.PortfolioConfigurationConnString);
         }).ConfigurePrimaryHttpMessageHandler(() => customHandler);

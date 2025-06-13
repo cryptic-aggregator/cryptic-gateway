@@ -59,4 +59,10 @@
     <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/PortfolioConfiguration/Rpc/PortfolioConfigurationService.proto" GrpcServices="Client" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/PushNotification/Models/Responses/push_responses.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/PushNotification/Models/Requests/push_requests.proto" GrpcServices="Server" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+    <Protobuf Include="../../cryptic-domain/Cryptic Domain/Protos/PushNotification/Rpc/PushNotificationService.proto" GrpcServices="Client" AdditionalImportDirs="../../cryptic-domain/Cryptic Domain/Protos" />
+  </ItemGroup>
+
 </Project>

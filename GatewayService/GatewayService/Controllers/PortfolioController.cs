@@ -133,6 +133,33 @@ public class PortfolioController : BaseController
 
         return Ok(result);
     }
+    
+    [HttpDelete("{portfolioId}/wallet/{walletId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteWallet(int portfolioId, int walletId)
+    {
+        if (portfolioId <= 0 || walletId <= 0)
+            return BadRequest("Invalid portfolio or wallet ID");
+
+        var ownerId = UserClaims.UserId;
+
+        bool success;
+        try
+        {
+            success = await _portfolioGrpcService.DeleteWalletAsync(portfolioId, walletId, ownerId);
+        }
+        catch (Grpc.Core.RpcException ex) when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+        {
+            return NotFound(ex.Status.Detail);
+        }
+
+        if (!success)
+            return BadRequest("Failed to delete wallet");
+
+        return NoContent();
+    }
 
     [HttpGet("{id}/correlation")]
     public async Task<ActionResult<List<PortfolioCorrelationResponseModel>>> GetCorrelation(

@@ -268,6 +268,19 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         return result;
     }
 
+    public async Task<bool> DeleteWalletAsync(int portfolioId, int walletId, int ownerId)
+    {
+        var grpcRequest = new DeleteWalletRequest
+        {
+            PortfolioId = portfolioId,
+            WalletId = walletId,
+            OwnerId = ownerId
+        };
+
+        var grpcResponse = await _grpcClient.DeleteWalletAsync(grpcRequest);
+        return grpcResponse.Result.Success;
+    }
+
     public async Task<PortfolioTransactionsResponseModel> GetPortfolioTransactionsAsync(
         int portfolioId,
         int ownerId,
