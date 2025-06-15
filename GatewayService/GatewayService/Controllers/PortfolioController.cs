@@ -4,6 +4,7 @@ using GatewayService.Interfaces.Services;
 using GatewayService.Models.Dtos.BlockchainInteraction.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
+using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -190,6 +191,31 @@ public class PortfolioController : BaseController
     {
         var ownerId = UserClaims.UserId;
         var result = await _portfolioGrpcService.GetPortfolioInfoWithWalletsAsync(id, ownerId);
+        return Ok(result);
+    }
+    
+    [HttpGet("{id}/pnl")]
+    public async Task<ActionResult<PortfolioPnlResponseModel>> GetPortfolioPnl(
+        int id,
+        [FromQuery] long fromTs,
+        [FromQuery] long toTs,
+        [FromQuery] int pointsCount = 12)
+    {
+        var ownerId = UserClaims.UserId;
+        if (id <= 0 || fromTs >= toTs)
+            return BadRequest("Invalid parameters");
+
+        PortfolioPnlResponseModel result;
+        try
+        {
+            result = await _portfolioGrpcService.GetPortfolioPnlPointsAsync(
+                id, ownerId, fromTs, toTs, pointsCount);
+        }
+        catch (RpcException ex) when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+        {
+            return NotFound(ex.Status.Detail);
+        }
+
         return Ok(result);
     }
 }

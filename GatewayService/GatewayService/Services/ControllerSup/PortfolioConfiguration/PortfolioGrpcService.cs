@@ -8,6 +8,7 @@ using GatewayService.Models.Dtos.BlockchainInteraction.Responses;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
 using Google.Protobuf.WellKnownTypes;
+using GetPortfolioPnlPointsRequest = Cryptic.PortfolioConfiguration.Models.Requests.GetPortfolioPnlPointsRequest;
 
 namespace GatewayService.Services.ControllerSup.PortfolioConfiguration;
 
@@ -443,5 +444,35 @@ public class PortfolioGrpcService : IPortfolioGrpcService
         }
 
         return dto;
+    }
+
+    public async Task<PortfolioPnlResponseModel> GetPortfolioPnlPointsAsync(
+        int portfolioId,
+        int ownerId,
+        long fromTs,
+        long toTs,
+        int pointsCount)
+    {
+        var grpcReq = new GetPortfolioPnlPointsRequest
+        {
+            PortfolioId = portfolioId,
+            FromTs = fromTs,
+            ToTs = toTs,
+            PointsCount = pointsCount
+        };
+        var grpcResp = await _grpcClient.GetPortfolioPnlPointsAsync(grpcReq);
+
+        return new PortfolioPnlResponseModel
+        {
+            Success = grpcResp.Result.Success,
+            Points = grpcResp.Points
+                .Select(p => new PnlPointDto
+                {
+                    Ts = p.Ts,
+                    Profit = p.Profit,
+                    Loss = p.Loss
+                })
+                .ToList()
+        };
     }
 }

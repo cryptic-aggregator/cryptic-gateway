@@ -34,4 +34,11 @@ public interface IPortfolioGrpcService
             int portfolioId,
             int ownerId,
             PortfolioCorrelationRequestModel filters);
+
+    Task<PortfolioPnlResponseModel> GetPortfolioPnlPointsAsync(
+        int portfolioId,
+        int ownerId,
+        long fromTs,
+        long toTs,
+        int pointsCount);
 }
