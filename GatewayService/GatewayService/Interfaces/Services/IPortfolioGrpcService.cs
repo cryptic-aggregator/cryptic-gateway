@@ -41,4 +41,7 @@ public interface IPortfolioGrpcService
         long fromTs,
         long toTs,
         int pointsCount);
+    
+    Task<BalanceGraphResponseModel> GetPortfolioBalanceGraphAsync(
+        int portfolioId, int ownerId, long fromTs, long toTs, int pointsCount);
 }

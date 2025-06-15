@@ -218,4 +218,28 @@ public class PortfolioController : BaseController
 
         return Ok(result);
     }
+    
+    [HttpGet("{id}/balance-graph")]
+    public async Task<IActionResult> GetPortfolioBalanceGraph(
+        int id,
+        [FromQuery] long fromTs,
+        [FromQuery] long toTs,
+        [FromQuery] int pointsCount = 6)
+    {
+        if (id <= 0) return BadRequest("Invalid portfolio ID");
+        var ownerId = UserClaims.UserId;
+
+        BalanceGraphResponseModel result;
+        try
+        {
+            result = await _portfolioGrpcService
+                .GetPortfolioBalanceGraphAsync(id, ownerId, fromTs, toTs, pointsCount);
+        }
+        catch (RpcException ex) when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+        {
+            return NotFound(ex.Status.Detail);
+        }
+
+        return Ok(result);
+    }
 }

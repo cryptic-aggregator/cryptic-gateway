@@ -8,6 +8,8 @@ using GatewayService.Models.Dtos.BlockchainInteraction.Responses;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Requests;
 using GatewayService.Models.Dtos.PortfolioConfiguration.Responses;
 using Google.Protobuf.WellKnownTypes;
+using GetPortfolioBalancePointsRequest =
+    Cryptic.PortfolioConfiguration.Models.Requests.GetPortfolioBalancePointsRequest;
 using GetPortfolioPnlPointsRequest = Cryptic.PortfolioConfiguration.Models.Requests.GetPortfolioPnlPointsRequest;
 
 namespace GatewayService.Services.ControllerSup.PortfolioConfiguration;
@@ -187,11 +189,21 @@ public class PortfolioGrpcService : IPortfolioGrpcService
             TotalPortfolioValueUSDT = grpcResponse.WalletInfo.TotalPortfolioValueUSDT
         };
 
-        return new PortfolioInfoResponseModel
+        var model = new PortfolioInfoResponseModel
         {
             Portfolio = portfolioDto,
             WalletInfo = walletDto
         };
+
+        model.BalancePoints = grpcResponse.BalancePoints
+            .Select(p => new BalancePointDto
+            {
+                Ts = p.Ts,
+                Balance = p.Balance
+            })
+            .ToList();
+
+        return model;
     }
 
     public async Task<List<WalletModel>> GetWalletsByPortfolioIdAsync(
@@ -472,6 +484,30 @@ public class PortfolioGrpcService : IPortfolioGrpcService
                     Profit = p.Profit,
                     Loss = p.Loss
                 })
+                .ToList()
+        };
+    }
+
+    public async Task<BalanceGraphResponseModel> GetPortfolioBalanceGraphAsync(
+        int portfolioId,
+        int ownerId,
+        long fromTs,
+        long toTs,
+        int pointsCount)
+    {
+        var grpcReq = new GetPortfolioBalancePointsRequest
+        {
+            PortfolioId = portfolioId,
+            OwnerId = ownerId,
+            FromTs = fromTs,
+            ToTs = toTs,
+            PointsCount = pointsCount
+        };
+        var grpcRes = await _grpcClient.GetPortfolioBalancePointsAsync(grpcReq);
+        return new BalanceGraphResponseModel
+        {
+            Points = grpcRes.Points
+                .Select(p => new BalancePointDto { Ts = p.Ts, Balance = p.Balance })
                 .ToList()
         };
     }
